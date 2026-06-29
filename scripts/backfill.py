@@ -17,7 +17,7 @@ def safe_float(value):
     except (ValueError, TypeError):
         return 0.0
 
-def backfill(days=10, prune=False):
+def backfill(days=10):
     print(f"Starting backfill for the last {days} trading days...")
     init_database()
 
@@ -120,15 +120,13 @@ def backfill(days=10, prune=False):
 
     print(f"\nBackfill complete! Processed {processed} records.")
     
-    if prune:
-        prune_old_data(days_to_keep=504)
-        print("Database pruned to 504 days.")
+    # Always prune to keep only the most recent 504 trading days
+    prune_old_data(days_to_keep=504)
+    print("✅ Database pruned to 504 days.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Backfill historical IV data")
     parser.add_argument('--days', type=int, default=10,
                         help='Number of recent trading days to backfill (default: 10)')
-    parser.add_argument('--prune', action='store_true',
-                        help='Prune database to 504 days after backfill')
     args = parser.parse_args()
-    backfill(days=args.days, prune=args.prune)
+    backfill(days=args.days)
