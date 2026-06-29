@@ -145,10 +145,14 @@ cython_debug/
 .DS_Store
 Thumbs.db
 
-# Project-specific: ignore other database files but allow data/iv_history.db
+# Project-specific: allow data/iv_history.db only
 *.db
 *.sqlite
 *.sqlite3
+!data/iv_history.db
+data/*.db
+data/*.sqlite
+data/*.sqlite3
 !data/iv_history.db
 
 # Output files (except JSON)
@@ -157,9 +161,3 @@ Thumbs.db
 
 # Local config
 config/local_*.json
-
-# Data folder contents (except the database file)
-data/*.db
-data/*.sqlite
-data/*.sqlite3
-!data/iv_history.db
