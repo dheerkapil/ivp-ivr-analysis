@@ -24,6 +24,30 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
     
+    - name: Debug nselib
+      run: |
+        echo "=== Checking nselib ==="
+        python -c "import nselib; print('nselib attributes:', [x for x in dir(nselib) if not x.startswith('_')])"
+        echo ""
+        echo "=== Checking nselib.capital_market ==="
+        python -c "from nselib import capital_market; print('capital_market attributes:', [x for x in dir(capital_market) if not x.startswith('_')])"
+        echo ""
+        echo "=== Checking for bhavcopy functions ==="
+        python -c "
+import nselib
+from nselib import capital_market
+# Check all modules
+for module_name in ['nselib', 'nselib.capital_market']:
+    try:
+        module = eval(module_name)
+        print(f'{module_name}:')
+        for attr in dir(module):
+            if 'bhav' in attr.lower() or 'fno' in attr.lower() or 'copy' in attr.lower():
+                print(f'  - {attr}')
+    except:
+        pass
+"
+    
     - name: Create data directory
       run: mkdir -p data
     
