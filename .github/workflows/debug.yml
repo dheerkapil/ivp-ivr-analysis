@@ -31,41 +31,23 @@ jobs:
         pip show nselib
         echo ""
         echo "=== Checking nselib ==="
-        python -c "
-import nselib
-print('nselib attributes:')
-for attr in dir(nselib):
-    if not attr.startswith('_'):
-        print(f'  - {attr}')
-"
+        python -c "import nselib; print('nselib attributes:', [x for x in dir(nselib) if not x.startswith('_')])"
         echo ""
         echo "=== Checking nselib.capital_market ==="
-        python -c "
-from nselib import capital_market
-print('capital_market attributes:')
-for attr in dir(capital_market):
-    if not attr.startswith('_'):
-        print(f'  - {attr}')
-"
+        python -c "from nselib import capital_market; print('capital_market attributes:', [x for x in dir(capital_market) if not x.startswith('_')])"
         echo ""
         echo "=== Searching for bhavcopy functions ==="
         python -c "
 import nselib
 from nselib import capital_market
-
-# Check nselib
+print('Checking nselib:')
 for attr in dir(nselib):
     if 'bhav' in attr.lower():
-        print(f'nselib has: {attr}')
-        if callable(getattr(nselib, attr)):
-            print(f'  -> {attr} is callable')
-
-# Check capital_market
+        print(f'  nselib has: {attr}')
+print('Checking capital_market:')
 for attr in dir(capital_market):
     if 'bhav' in attr.lower():
-        print(f'capital_market has: {attr}')
-        if callable(getattr(capital_market, attr)):
-            print(f'  -> {attr} is callable')
+        print(f'  capital_market has: {attr}')
 "
     
     - name: Try to download bhavcopy
@@ -74,29 +56,20 @@ for attr in dir(capital_market):
 import nselib
 from nselib import capital_market
 from datetime import datetime
-
-# Try to find and call the function
 date_str = datetime.now().strftime('%d-%m-%Y')
 print(f'Attempting to download bhavcopy for {date_str}')
-
-# Try different approaches
-try:
-    # Approach 1: Try capital_market
-    if hasattr(capital_market, 'fno_bhav_copy'):
-        print('Found capital_market.fno_bhav_copy')
+if hasattr(capital_market, 'fno_bhav_copy'):
+    print('Found capital_market.fno_bhav_copy')
+    try:
         result = capital_market.fno_bhav_copy(date_str)
-        print(f'Result type: {type(result)}')
-        if result is not None:
-            print(f'Result length: {len(result) if hasattr(result, \"__len__\") else \"N/A\"}')
-except Exception as e:
-    print(f'Error with capital_market.fno_bhav_copy: {e}')
-
-try:
-    # Approach 2: Try nselib directly
-    if hasattr(nselib, 'fno_bhav_copy'):
-        print('Found nselib.fno_bhav_copy')
+        print(f'Result: {type(result)}')
+    except Exception as e:
+        print(f'Error: {e}')
+if hasattr(nselib, 'fno_bhav_copy'):
+    print('Found nselib.fno_bhav_copy')
+    try:
         result = nselib.fno_bhav_copy(date_str)
-        print(f'Result type: {type(result)}')
-except Exception as e:
-    print(f'Error with nselib.fno_bhav_copy: {e}')
+        print(f'Result: {type(result)}')
+    except Exception as e:
+        print(f'Error: {e}')
 "
