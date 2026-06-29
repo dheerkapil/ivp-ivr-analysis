@@ -1,4 +1,4 @@
-import nselib
+from nselib import capital_market
 import pandas as pd
 from datetime import datetime, timedelta
 import time
