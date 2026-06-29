@@ -10,7 +10,6 @@ def init_database():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Table for daily IV history
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS daily_iv (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +24,6 @@ def init_database():
         )
     ''')
     
-    # Table for daily metrics
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS daily_metrics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,45 +41,40 @@ def init_database():
     print("Database initialized successfully")
 
 def store_daily_iv(date, symbol, iv, spot, expiry, strike, option_type='CE'):
-    """Store daily IV for a stock"""
+    """Store daily IV – force uppercase for symbol"""
+    symbol = symbol.upper()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
     cursor.execute('''
         INSERT OR REPLACE INTO daily_iv 
         (date, symbol, iv, spot, expiry, strike, option_type)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (date, symbol, iv, spot, expiry, strike, option_type))
-    
     conn.commit()
     conn.close()
 
 def store_daily_metrics(date, symbol, iv_rank, iv_percentile, current_iv):
-    """Store daily IVP and IVR metrics"""
+    """Store daily metrics – force uppercase for symbol"""
+    symbol = symbol.upper()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
     cursor.execute('''
         INSERT OR REPLACE INTO daily_metrics 
         (date, symbol, iv_rank, iv_percentile, current_iv)
         VALUES (?, ?, ?, ?, ?)
     ''', (date, symbol, iv_rank, iv_percentile, current_iv))
-    
     conn.commit()
     conn.close()
 
 def get_historical_ivs(symbol, days=252):
-    """Get historical IV data for a symbol"""
+    """Get historical IV data for a symbol (case‑insensitive)"""
     conn = sqlite3.connect(DB_PATH)
-    
     cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
-    
     query = '''
         SELECT date, iv FROM daily_iv 
-        WHERE symbol = ? AND date >= ?
+        WHERE UPPER(symbol) = UPPER(?) AND date >= ?
         ORDER BY date DESC
     '''
-    
     df = pd.read_sql_query(query, conn, params=(symbol, cutoff_date))
     conn.close()
     return df
@@ -93,3 +86,21 @@ def get_all_symbols():
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df['symbol'].tolist()
+
+def get_data_coverage():
+    """Return (total_days, oldest_date, newest_date) from daily_iv table"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(DISTINCT date), MIN(date), MAX(date) FROM daily_iv")
+    result = cursor.fetchone()
+    conn.close()
+    return result  # (count, oldest, newest)
+
+def get_symbol_history_count(symbol):
+    """Return number of historical IV days for a given symbol (case‑insensitive)"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(DISTINCT date) FROM daily_iv WHERE UPPER(symbol) = UPPER(?)", (symbol,))
+    result = cursor.fetchone()[0]
+    conn.close()
+    return result
