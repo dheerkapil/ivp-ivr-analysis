@@ -19,60 +19,7 @@ jobs:
         python-version: '3.10'
     
     - name: Install nselib
-      run: |
-        pip install nselib pandas
+      run: pip install nselib pandas
     
-    - name: Debug nselib - Part 1
-      run: |
-        echo "=== Python Version ==="
-        python --version
-        echo ""
-        echo "=== nselib installed ==="
-        pip show nselib
-        echo ""
-        echo "=== Checking nselib ==="
-        python -c "import nselib; print('nselib attributes:', [x for x in dir(nselib) if not x.startswith('_')])"
-        echo ""
-        echo "=== Checking nselib.capital_market ==="
-        python -c "from nselib import capital_market; print('capital_market attributes:', [x for x in dir(capital_market) if not x.startswith('_')])"
-    
-    - name: Debug nselib - Part 2
-      run: |
-        echo "=== Searching for bhavcopy functions ==="
-        python -c "
-import nselib
-from nselib import capital_market
-print('Checking nselib:')
-for attr in dir(nselib):
-    if 'bhav' in attr.lower():
-        print(f'  nselib has: {attr}')
-print('Checking capital_market:')
-for attr in dir(capital_market):
-    if 'bhav' in attr.lower():
-        print(f'  capital_market has: {attr}')
-"
-    
-    - name: Try to download bhavcopy
-      run: |
-        echo "=== Attempting to download ==="
-        python -c "
-import nselib
-from nselib import capital_market
-from datetime import datetime
-date_str = datetime.now().strftime('%d-%m-%Y')
-print(f'Attempting to download bhavcopy for {date_str}')
-if hasattr(capital_market, 'fno_bhav_copy'):
-    print('Found capital_market.fno_bhav_copy')
-    try:
-        result = capital_market.fno_bhav_copy(date_str)
-        print(f'Result: {type(result)}')
-    except Exception as e:
-        print(f'Error: {e}')
-if hasattr(nselib, 'fno_bhav_copy'):
-    print('Found nselib.fno_bhav_copy')
-    try:
-        result = nselib.fno_bhav_copy(date_str)
-        print(f'Result: {type(result)}')
-    except Exception as e:
-        print(f'Error: {e}')
-"
+    - name: Run debug script
+      run: python scripts/debug_nselib.py
