@@ -2,8 +2,9 @@ name: Daily IVP/IVR Update
 
 on:
   schedule:
+    # Runs at 1:00 PM UTC (6:30 PM IST) on weekdays
     - cron: '00 13 * * 1-5'
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
 
 jobs:
   update-data:
@@ -23,8 +24,10 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Create data directory
-      run: mkdir -p data
+    - name: Create directories
+      run: |
+        mkdir -p data
+        mkdir -p output
     
     - name: Run main analysis
       env:
