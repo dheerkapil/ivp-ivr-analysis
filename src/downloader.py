@@ -1,4 +1,4 @@
-from nselib import capital_market
+from nselib.capital_market import fno_bhav_copy
 import pandas as pd
 from datetime import datetime, timedelta
 import time
@@ -13,7 +13,7 @@ def download_fno_bhavcopy(date=None):
     
     try:
         # Fetch bhavcopy using nselib
-        bhavcopy = capital_market.fno_bhav_copy(date.strftime("%d-%m-%Y"))
+        bhavcopy = fno_bhav_copy(date.strftime("%d-%m-%Y"))
         return bhavcopy
     except Exception as e:
         print(f"Error downloading bhavcopy for {date}: {e}")
