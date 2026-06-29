@@ -1,0 +1,24 @@
+name: Backfill Historical Data
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run backfill
+        run: python scripts/backfill.py
+      - name: Commit and push database
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add data/iv_history.db
+          git commit -m "Backfill historical IV data" || echo "No changes"
+          git push
