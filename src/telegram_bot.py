@@ -34,4 +34,54 @@ def send_telegram_message(message):
         return False
 
 def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
-    # ... (keep the same as your current version)
+    if not stock_metrics:
+        return "No data available for today"
+    
+    # Sort by IVP descending
+    sorted_metrics = sorted(stock_metrics, key=lambda x: x['ivp'], reverse=True)
+    
+    # Coverage header
+    coverage_line = ""
+    if total_days > 0 and oldest and newest:
+        coverage_line = f"📅 Historical data: {total_days} days (of 252) – from {oldest} to {newest}\n\n"
+    elif total_days > 0:
+        coverage_line = f"📅 Historical data: {total_days} days (of 252)\n\n"
+    
+    message = f"📊 *NSE IVP/IVR Report* - {date}\n\n"
+    message += coverage_line
+    message += "*Sorted by IV Percentile (Highest → Lowest)*\n\n"
+    message += "```\n"
+    message += "┌────────────┬──────┬──────┬──────┬──────┐\n"
+    message += "│ STOCK      │ IVP  │ IVR  │ IV   │ Days │\n"
+    message += "├────────────┼──────┼──────┼──────┼──────┤\n"
+    
+    for stock in sorted_metrics[:20]:  # Show top 20
+        symbol = stock['symbol'][:10].ljust(10)
+        ivp = str(int(round(stock['ivp']))).ljust(4)
+        ivr = str(round(stock['ivr'], 1)).ljust(4)
+        iv = str(round(stock['iv'], 1)).ljust(4)
+        days = str(stock.get('hist_days', 0)).ljust(4)
+        message += f"│ {symbol} │ {ivp}% │ {ivr} │ {iv} │ {days} │\n"
+    
+    message += "└────────────┴──────┴──────┴──────┴──────┘\n"
+    message += "```\n\n"
+    
+    # Recommendations
+    high_ivp = [s for s in sorted_metrics if s['ivp'] >= 80]
+    low_ivp = [s for s in sorted_metrics if s['ivp'] <= 20]
+    
+    if high_ivp:
+        message += f"🔴 *High IVP (>80%)*: {', '.join([s['symbol'] for s in high_ivp[:5]])}\n"
+        message += "   *Consider credit spreads*\n\n"
+    
+    if low_ivp:
+        message += f"🟢 *Low IVP (<20%)*: {', '.join([s['symbol'] for s in low_ivp[:5]])}\n"
+        message += "   *Consider debit spreads*\n\n"
+    
+    # Note about low history
+    low_history = [s for s in sorted_metrics if s.get('hist_days', 0) < 30]
+    if low_history:
+        message += f"⚠️ *Low history (<30 days)*: {', '.join([s['symbol'] for s in low_history[:5]])}\n"
+        message += "   IVP/IVR for these stocks are less reliable.\n"
+    
+    return message
