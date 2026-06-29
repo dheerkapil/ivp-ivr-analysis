@@ -1,0 +1,102 @@
+name: Debug nselib
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: Install nselib
+      run: |
+        pip install nselib pandas
+    
+    - name: Debug nselib
+      run: |
+        echo "=== Python Version ==="
+        python --version
+        echo ""
+        echo "=== nselib installed ==="
+        pip show nselib
+        echo ""
+        echo "=== Checking nselib ==="
+        python -c "
+import nselib
+print('nselib attributes:')
+for attr in dir(nselib):
+    if not attr.startswith('_'):
+        print(f'  - {attr}')
+"
+        echo ""
+        echo "=== Checking nselib.capital_market ==="
+        python -c "
+from nselib import capital_market
+print('capital_market attributes:')
+for attr in dir(capital_market):
+    if not attr.startswith('_'):
+        print(f'  - {attr}')
+"
+        echo ""
+        echo "=== Searching for bhavcopy functions ==="
+        python -c "
+import nselib
+from nselib import capital_market
+
+# Check nselib
+for attr in dir(nselib):
+    if 'bhav' in attr.lower():
+        print(f'nselib has: {attr}')
+        if callable(getattr(nselib, attr)):
+            print(f'  -> {attr} is callable')
+
+# Check capital_market
+for attr in dir(capital_market):
+    if 'bhav' in attr.lower():
+        print(f'capital_market has: {attr}')
+        if callable(getattr(capital_market, attr)):
+            print(f'  -> {attr} is callable')
+"
+    
+    - name: Try to download bhavcopy
+      run: |
+        python -c "
+import nselib
+from nselib import capital_market
+from datetime import datetime
+
+# Try to find and call the function
+date_str = datetime.now().strftime('%d-%m-%Y')
+print(f'Attempting to download bhavcopy for {date_str}')
+
+# Try different approaches
+try:
+    # Approach 1: Try capital_market
+    if hasattr(capital_market, 'fno_bhav_copy'):
+        print('Found capital_market.fno_bhav_copy')
+        result = capital_market.fno_bhav_copy(date_str)
+        print(f'Result type: {type(result)}')
+        if result is not None:
+            print(f'Result length: {len(result) if hasattr(result, \"__len__\") else \"N/A\"}')
+except Exception as e:
+    print(f'Error with capital_market.fno_bhav_copy: {e}')
+
+try:
+    # Approach 2: Try nselib directly
+    if hasattr(nselib, 'fno_bhav_copy'):
+        print('Found nselib.fno_bhav_copy')
+        result = nselib.fno_bhav_copy(date_str)
+        print(f'Result type: {type(result)}')
+except Exception as e:
+    print(f'Error with nselib.fno_bhav_copy: {e}')
+"
