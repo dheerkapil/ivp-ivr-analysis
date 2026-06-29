@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.downloader import download_historical_bhavcopy
-from src.database import init_database, store_daily_iv, prune_old_data
+from src.database import init_database, store_daily_iv, trim_old_data  # added trim_old_data
 
 def safe_float(value):
     if value is None:
@@ -22,7 +22,7 @@ def backfill(days=10):
     init_database()
 
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=days*2)  # buffer for weekends/holidays
+    start_date = end_date - timedelta(days=days*2)
 
     print(f"Downloading data from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
     all_data = download_historical_bhavcopy(start_date, end_date)
@@ -33,7 +33,6 @@ def backfill(days=10):
 
     print(f"Downloaded {len(all_data)} rows across all days")
 
-    # Column mapping
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
@@ -70,7 +69,6 @@ def backfill(days=10):
                 if len(stock_data) == 0:
                     continue
 
-                # Spot
                 spot = 0.0
                 if 'UNDERLYING_PRICE' in stock_data.columns:
                     spot = safe_float(stock_data['UNDERLYING_PRICE'].iloc[0])
@@ -108,7 +106,7 @@ def backfill(days=10):
 
                 expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
 
-                store_daily_iv(date, symbol.upper(), current_iv, spot, expiry, atm_strike, 'CE')
+                store_daily_iv(date, symbol, current_iv, spot, expiry, atm_strike, 'CE')
                 processed += 1
                 if processed % 100 == 0:
                     print(f"  Processed {processed} records...")
@@ -119,10 +117,9 @@ def backfill(days=10):
                 continue
 
     print(f"\nBackfill complete! Processed {processed} records.")
-    
-    # Always prune to keep only the most recent 504 trading days
-    prune_old_data(days_to_keep=504)
-    print("✅ Database pruned to 504 days.")
+
+    # --- AUTO-TRIM: Keep only the last 253 days ---
+    trim_old_data(253)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Backfill historical IV data")
