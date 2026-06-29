@@ -41,8 +41,6 @@ def init_database():
     print("Database initialized successfully")
 
 def store_daily_iv(date, symbol, iv, spot, expiry, strike, option_type='CE'):
-    """Store daily IV – force uppercase for symbol"""
-    symbol = symbol.upper()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
@@ -54,8 +52,6 @@ def store_daily_iv(date, symbol, iv, spot, expiry, strike, option_type='CE'):
     conn.close()
 
 def store_daily_metrics(date, symbol, iv_rank, iv_percentile, current_iv):
-    """Store daily metrics – force uppercase for symbol"""
-    symbol = symbol.upper()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
@@ -67,12 +63,11 @@ def store_daily_metrics(date, symbol, iv_rank, iv_percentile, current_iv):
     conn.close()
 
 def get_historical_ivs(symbol, days=252):
-    """Get historical IV data for a symbol (case‑insensitive)"""
     conn = sqlite3.connect(DB_PATH)
     cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
     query = '''
         SELECT date, iv FROM daily_iv 
-        WHERE UPPER(symbol) = UPPER(?) AND date >= ?
+        WHERE symbol = ? AND date >= ?
         ORDER BY date DESC
     '''
     df = pd.read_sql_query(query, conn, params=(symbol, cutoff_date))
@@ -80,7 +75,6 @@ def get_historical_ivs(symbol, days=252):
     return df
 
 def get_all_symbols():
-    """Get all symbols in the database"""
     conn = sqlite3.connect(DB_PATH)
     query = "SELECT DISTINCT symbol FROM daily_iv"
     df = pd.read_sql_query(query, conn)
@@ -94,48 +88,40 @@ def get_data_coverage():
     cursor.execute("SELECT COUNT(DISTINCT date), MIN(date), MAX(date) FROM daily_iv")
     result = cursor.fetchone()
     conn.close()
-    return result  # (count, oldest, newest)
+    return result
 
 def get_symbol_history_count(symbol):
-    """Return number of historical IV days for a given symbol (case‑insensitive)"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(DISTINCT date) FROM daily_iv WHERE UPPER(symbol) = UPPER(?)", (symbol,))
+    cursor.execute("SELECT COUNT(DISTINCT date) FROM daily_iv WHERE symbol = ?", (symbol,))
     result = cursor.fetchone()[0]
     conn.close()
     return result
 
-def prune_old_data(days_to_keep=504):
+def trim_old_data(days=253):
     """
-    Delete records older than the most recent `days_to_keep` unique trading dates.
-    Keeps the database size constant.
+    Delete records older than the most recent `days` trading days.
+    Keeps only the last `days` days of data for each symbol.
     """
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Get the list of unique dates sorted descending
-    cursor.execute("SELECT DISTINCT date FROM daily_iv ORDER BY date DESC")
-    all_dates = [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT MAX(date) FROM daily_iv")
+    max_date = cursor.fetchone()[0]
     
-    if len(all_dates) <= days_to_keep:
+    if max_date is None:
+        print("No data to trim")
         conn.close()
-        print(f"✅ Database has {len(all_dates)} days, no pruning needed (target: {days_to_keep})")
         return
     
-    # Keep the most recent `days_to_keep` dates
-    keep_dates = all_dates[:days_to_keep]
-    # Convert to tuple for SQL query
-    placeholders = ','.join(['?'] * len(keep_dates))
+    cutoff = (datetime.strptime(max_date, "%Y-%m-%d") - timedelta(days=days)).strftime("%Y-%m-%d")
     
-    # Delete records not in the keep list
-    delete_query = f"DELETE FROM daily_iv WHERE date NOT IN ({placeholders})"
-    cursor.execute(delete_query, keep_dates)
-    deleted = cursor.rowcount
-    
-    # Also clean up daily_metrics table
-    cursor.execute(f"DELETE FROM daily_metrics WHERE date NOT IN ({placeholders})", keep_dates)
+    cursor.execute("DELETE FROM daily_iv WHERE date < ?", (cutoff,))
+    deleted_iv = cursor.rowcount
+    cursor.execute("DELETE FROM daily_metrics WHERE date < ?", (cutoff,))
     deleted_metrics = cursor.rowcount
     
     conn.commit()
     conn.close()
-    print(f"🗑️ Pruned {deleted} old IV records and {deleted_metrics} metrics records. Keeping {len(keep_dates)} days.")
+    
+    print(f"Trimmed {deleted_iv} IV records and {deleted_metrics} metrics records older than {cutoff}")
