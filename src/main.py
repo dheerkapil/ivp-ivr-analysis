@@ -12,7 +12,7 @@ from src.downloader import download_fno_bhavcopy
 from src.database import (
     init_database, store_daily_iv, store_daily_metrics,
     get_historical_ivs, get_symbol_history_count, get_data_coverage,
-    prune_old_data
+    trim_old_data          # <--- added import
 )
 from src.metrics import calculate_ivr, calculate_ivp
 from src.telegram_bot import send_telegram_message, format_results
@@ -29,6 +29,8 @@ def main():
     print("=== NSE IVP/IVR Analysis Started ===")
     print(f"Time: {datetime.now()}")
 
+    config = load_config()
+
     init_database()
     output_dir = get_project_root() / "output"
     output_dir.mkdir(exist_ok=True)
@@ -41,7 +43,6 @@ def main():
 
     print(f"Downloaded {len(bhavcopy)} rows of data")
 
-    # Column mapping (F&O bhavcopy format)
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
@@ -55,7 +56,6 @@ def main():
         bhavcopy = bhavcopy.rename(columns=rename_dict)
         print(f"Renamed columns: {rename_dict}")
 
-    # Extract ALL symbols that have options (CE/PE)
     options_data = bhavcopy[bhavcopy['OPTION_TYP'].isin(['CE', 'PE'])]
     if len(options_data) == 0:
         print("No options found in bhavcopy")
@@ -67,7 +67,7 @@ def main():
     today = datetime.now().strftime("%Y-%m-%d")
     stock_metrics = []
 
-    print("\nProcessing symbols...")
+    print("\nProcessing stocks...")
 
     for symbol in symbols:
         try:
@@ -75,7 +75,6 @@ def main():
             if len(stock_data) == 0:
                 continue
 
-            # Spot price
             spot = 0.0
             if 'UNDERLYING_PRICE' in stock_data.columns:
                 spot = safe_float(stock_data['UNDERLYING_PRICE'].iloc[0])
@@ -90,19 +89,16 @@ def main():
                 print(f"  {symbol}: Invalid spot")
                 continue
 
-            # Options for this symbol
             options = stock_data[stock_data['OPTION_TYP'].isin(['CE', 'PE'])]
             if len(options) == 0:
                 continue
 
-            # ATM strike
             strikes = options['STRIKE_PR'].unique()
             if len(strikes) == 0:
                 continue
             strike_floats = [safe_float(s) for s in strikes]
             atm_strike = min(strike_floats, key=lambda x: abs(x - spot))
 
-            # Call option
             call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'CE')]
             if len(call) == 0:
                 call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'PE')]
@@ -110,7 +106,6 @@ def main():
                     continue
 
             opt_price = safe_float(call['CLOSE'].iloc[0])
-            # Approx IV based on moneyness
             if opt_price > 0 and spot > 0:
                 moneyness = abs(spot - atm_strike) / spot
                 current_iv = 20 + (moneyness * 60)
@@ -120,39 +115,35 @@ def main():
 
             expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
 
-            # Store today's IV (force uppercase)
-            store_daily_iv(today, symbol.upper(), current_iv, spot, expiry, atm_strike, 'CE')
+            store_daily_iv(today, symbol, current_iv, spot, expiry, atm_strike, 'CE')
 
-            # Get historical days for this symbol
-            hist_days = get_symbol_history_count(symbol.upper())
+            hist_data = get_historical_ivs(symbol, days=252)
+            hist_days = get_symbol_history_count(symbol)
 
-            # Get historical IVs for IVR/IVP
-            hist_data = get_historical_ivs(symbol.upper(), days=252)
             if len(hist_data) > 0:
                 historical_ivs = hist_data['iv'].tolist()
                 ivr = calculate_ivr(current_iv, historical_ivs)
                 ivp = calculate_ivp(current_iv, historical_ivs)
-                store_daily_metrics(today, symbol.upper(), ivr, ivp, current_iv)
+                store_daily_metrics(today, symbol, ivr, ivp, current_iv)
             else:
                 ivr = 50.0
                 ivp = 50.0
 
             stock_metrics.append({
-                'symbol': symbol.upper(),
+                'symbol': symbol,
                 'iv': round(current_iv, 1),
                 'ivr': round(ivr, 1),
                 'ivp': round(ivp, 1),
                 'hist_days': hist_days
             })
 
-            print(f"  {symbol.upper()}: IV={current_iv:.1f}%, IVP={ivp:.0f}%, IVR={ivr:.1f}, Days={hist_days}")
+            print(f"  {symbol}: IV={current_iv:.1f}%, IVP={ivp:.0f}%, IVR={ivr:.1f}, Days={hist_days}")
 
         except Exception as e:
             print(f"  {symbol}: Error - {e}")
             traceback.print_exc()
             continue
 
-    # Save JSON output
     output_path = get_project_root() / "output" / "daily_ivp_ivr.json"
     output_data = {'date': today, 'stocks': stock_metrics}
     with open(output_path, 'w') as f:
@@ -160,11 +151,9 @@ def main():
 
     print(f"\nResults saved to {output_path}")
 
-    # Overall coverage for Telegram header
     coverage = get_data_coverage()
     total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
 
-    # Send Telegram
     print("\nSending Telegram notification...")
     if stock_metrics:
         message = format_results(stock_metrics, today, total_days, oldest, newest)
@@ -172,8 +161,8 @@ def main():
     else:
         print("No metrics to send")
 
-    # Prune old data to keep database size constant
-    prune_old_data(days_to_keep=504)  # Keep 504 trading days (~2 years)
+    # --- AUTO-TRIM: Keep only the last 253 days ---
+    trim_old_data(253)
 
     print("\n=== Analysis Complete ===")
     if stock_metrics:
