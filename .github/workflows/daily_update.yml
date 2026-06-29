@@ -1,10 +1,11 @@
+# Manually triggered workflow
 name: Daily IVP/IVR Update
 
 on:
   schedule:
     # Runs at 1:00 PM UTC (6:30 PM IST) on weekdays
     - cron: '00 13 * * 1-5'
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
 
 jobs:
   update-data:
