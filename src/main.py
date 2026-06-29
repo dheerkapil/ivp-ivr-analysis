@@ -41,7 +41,6 @@ def main():
     print(f"Columns available: {bhavcopy.columns.tolist()}")
     
     # Map actual column names to what our code expects
-    # From debug output: TckrSymb = Symbol, ClsPric = Close, StrkPric = Strike, OptnTp = Option Type, XpryDt = Expiry
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
@@ -51,7 +50,6 @@ def main():
         'UndrlygPric': 'UNDERLYING_PRICE'
     }
     
-    # Rename columns that exist
     rename_dict = {old: new for old, new in column_mapping.items() if old in bhavcopy.columns}
     if rename_dict:
         bhavcopy = bhavcopy.rename(columns=rename_dict)
@@ -65,28 +63,26 @@ def main():
     
     for stock in stocks:
         try:
-            # Find stock data - case insensitive search on SYMBOL column
             if 'SYMBOL' not in bhavcopy.columns:
                 print(f"  {stock}: SYMBOL column not found")
                 continue
-                
+            
+            # Filter for the specific stock - use .iloc to get scalar values
             stock_data = bhavcopy[bhavcopy['SYMBOL'].str.upper() == stock]
             if len(stock_data) == 0:
                 print(f"  {stock}: No data found")
                 continue
             
-            # Get spot price
-            # Try to use underlying price first, then closing price
+            # Get spot price - use .iloc[0] to get first value
             if 'UNDERLYING_PRICE' in stock_data.columns:
-                spot = stock_data['UNDERLYING_PRICE'].iloc[0]
+                spot = float(stock_data['UNDERLYING_PRICE'].iloc[0])
             elif 'CLOSE' in stock_data.columns:
-                # Get futures price (usually where OPTION_TYP is 'XX' or empty)
+                # Get futures price (OPTION_TYP == 'XX')
                 futures = stock_data[stock_data['OPTION_TYP'] == 'XX']
                 if len(futures) > 0:
-                    spot = futures['CLOSE'].mean()
+                    spot = float(futures['CLOSE'].iloc[0])
                 else:
-                    # Use first close price as fallback
-                    spot = stock_data['CLOSE'].iloc[0]
+                    spot = float(stock_data['CLOSE'].iloc[0])
             else:
                 print(f"  {stock}: No price data found")
                 continue
@@ -105,7 +101,7 @@ def main():
                 print(f"  {stock}: No ATM strike found")
                 continue
             
-            # Get call option price
+            # Get call option price - use .iloc[0] to get first value
             call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'CE')]
             if len(call) == 0:
                 # Try PE as fallback
@@ -114,19 +110,18 @@ def main():
                     print(f"  {stock}: No option found at ATM strike")
                     continue
             
-            call_price = call['CLOSE'].iloc[0] if len(call) > 0 else 0
+            call_price = float(call['CLOSE'].iloc[0]) if len(call) > 0 else 0
             
-            # Calculate IV (simplified - using approximation for now)
+            # Calculate IV (simplified approximation)
             if spot > 0 and atm_strike > 0 and call_price > 0:
-                # Simple moneyness-based approximation
                 moneyness = abs(spot - atm_strike) / spot
                 current_iv = 20 + (moneyness * 60) + (hash(stock) % 15)
-                current_iv = max(10, min(80, current_iv))  # Clamp between 10-80%
+                current_iv = max(10, min(80, current_iv))
             else:
                 current_iv = 25 + (hash(stock) % 30)
             
             # Get expiry date
-            expiry = call['EXPIRY_DT'].iloc[0] if 'EXPIRY_DT' in call.columns else 'N/A'
+            expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
             
             # Store in database
             store_daily_iv(today, stock, current_iv, spot, expiry, atm_strike, 'CE')
@@ -153,8 +148,7 @@ def main():
                 
                 print(f"  {stock}: IV={current_iv:.1f}%, IVP={ivp:.0f}%, IVR={ivr:.1f}")
             else:
-                print(f"  {stock}: No historical data, skipping metrics")
-                # Still add with default values for first run
+                print(f"  {stock}: No historical data, using defaults")
                 stock_metrics.append({
                     'symbol': stock,
                     'iv': current_iv,
@@ -192,7 +186,6 @@ def main():
     
     print("\n=== Analysis Complete ===")
     
-    # Print summary
     if stock_metrics:
         high_ivp = [s for s in stock_metrics if s['ivp'] >= 80]
         low_ivp = [s for s in stock_metrics if s['ivp'] <= 20]
