@@ -25,6 +25,10 @@ def main():
     # Initialize database
     init_database()
     
+    # Ensure output directory exists
+    output_dir = get_project_root() / "output"
+    output_dir.mkdir(exist_ok=True)
+    
     # Download today's bhavcopy
     print("\nDownloading F&O bhavcopy...")
     bhavcopy = download_fno_bhavcopy()
@@ -35,6 +39,28 @@ def main():
     
     print(f"Downloaded {len(bhavcopy)} rows of data")
     
+    # Check column names and rename if needed
+    print(f"Columns available: {bhavcopy.columns.tolist()}")
+    
+    # Standardize column names (handle different naming conventions)
+    column_mapping = {}
+    for col in bhavcopy.columns:
+        col_upper = col.upper()
+        if 'SYMBOL' in col_upper or 'NAME' in col_upper:
+            column_mapping[col] = 'SYMBOL'
+        elif 'CLOSE' in col_upper:
+            column_mapping[col] = 'CLOSE'
+        elif 'STRIKE' in col_upper:
+            column_mapping[col] = 'STRIKE_PR'
+        elif 'OPTION' in col_upper and 'TYPE' in col_upper:
+            column_mapping[col] = 'OPTION_TYP'
+        elif 'EXPIRY' in col_upper:
+            column_mapping[col] = 'EXPIRY_DT'
+    
+    if column_mapping:
+        bhavcopy = bhavcopy.rename(columns=column_mapping)
+        print(f"Renamed columns: {column_mapping}")
+    
     # Process each stock
     today = datetime.now().strftime("%Y-%m-%d")
     stock_metrics = []
@@ -43,8 +69,8 @@ def main():
     
     for stock in stocks:
         try:
-            # Find ATM option
-            stock_data = bhavcopy[bhavcopy['SYMBOL'] == stock]
+            # Find stock data - case insensitive search
+            stock_data = bhavcopy[bhavcopy['SYMBOL'].str.upper() == stock]
             if len(stock_data) == 0:
                 print(f"  {stock}: No data found")
                 continue
@@ -55,6 +81,10 @@ def main():
             
             # Get ATM strike
             options = stock_data[stock_data['OPTION_TYP'] != 'XX']
+            if len(options) == 0:
+                print(f"  {stock}: No options found")
+                continue
+                
             strikes = options['STRIKE_PR'].unique()
             atm_strike = get_atm_strike(spot, strikes)
             
@@ -65,15 +95,24 @@ def main():
             # Get call option price
             call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'CE')]
             if len(call) == 0:
-                print(f"  {stock}: No call option found")
-                continue
+                # Try PE as fallback
+                call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'PE')]
+                if len(call) == 0:
+                    print(f"  {stock}: No option found at ATM strike")
+                    continue
             
             call_price = call['CLOSE'].mean()
             
-            # Calculate IV (simplified - using approximation)
-            # For now, use a placeholder IV
+            # Calculate IV (simplified - using approximation for now)
             # In production, use actual Black-Scholes calculation
-            current_iv = 25 + (hash(stock) % 30)  # Placeholder: 25-55%
+            # For now, use a placeholder based on spot and strike
+            if spot > 0 and atm_strike > 0:
+                # Simple approximation
+                moneyness = abs(spot - atm_strike) / spot
+                current_iv = 20 + (moneyness * 50) + (hash(stock) % 20)
+                current_iv = max(10, min(80, current_iv))  # Clamp between 10-80%
+            else:
+                current_iv = 25 + (hash(stock) % 30)
             
             # Store in database
             expiry = call['EXPIRY_DT'].iloc[0] if 'EXPIRY_DT' in call.columns else 'N/A'
