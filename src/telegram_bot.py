@@ -39,29 +39,32 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     
     sorted_metrics = sorted(stock_metrics, key=lambda x: x['ivp'], reverse=True)
     
-    # Column widths
-    w_stock = 10
-    w_ivp = 6
-    w_ivr = 6
-    w_iv = 6
-    w_days = 6
+    # Fixed column widths (including padding spaces)
+    w_stock = 12
+    w_ivp   = 6
+    w_ivr   = 6
+    w_iv    = 6
+    w_days  = 6
     
-    header = f"┌{'─'*w_stock}┬{'─'*w_ivp}┬{'─'*w_ivr}┬{'─'*w_iv}┬{'─'*w_days}┐\n"
-    header += f"│{'STOCK'.center(w_stock)}│{'IVP'.center(w_ivp)}│{'IVR'.center(w_ivr)}│{'IV'.center(w_iv)}│{'Days'.center(w_days)}│\n"
-    header += f"├{'─'*w_stock}┼{'─'*w_ivp}┼{'─'*w_ivr}┼{'─'*w_iv}┼{'─'*w_days}┤\n"
+    # Build the table with box-drawing characters
+    top       = f"┌{'─'*w_stock}┬{'─'*w_ivp}┬{'─'*w_ivr}┬{'─'*w_iv}┬{'─'*w_days}┐"
+    header    = f"│{'STOCK'.center(w_stock)}│{'IVP'.center(w_ivp)}│{'IVR'.center(w_ivr)}│{'IV'.center(w_iv)}│{'Days'.center(w_days)}│"
+    separator = f"├{'─'*w_stock}┼{'─'*w_ivp}┼{'─'*w_ivr}┼{'─'*w_iv}┼{'─'*w_days}┤"
     
     rows = []
     for stock in sorted_metrics[:20]:
         symbol = stock['symbol'][:w_stock].center(w_stock)
         ivp = f"{int(round(stock['ivp']))}%".center(w_ivp)
         ivr = f"{round(stock['ivr'], 1)}".center(w_ivr)
-        iv = f"{round(stock['iv'], 1)}".center(w_iv)
+        iv  = f"{round(stock['iv'], 1)}".center(w_iv)
         days = str(stock.get('hist_days', 0)).center(w_days)
         rows.append(f"│{symbol}│{ivp}│{ivr}│{iv}│{days}│")
     
-    footer = f"└{'─'*w_stock}┴{'─'*w_ivp}┴{'─'*w_ivr}┴{'─'*w_iv}┴{'─'*w_days}┘"
-    table = header + "\n".join(rows) + "\n" + footer
+    bottom = f"└{'─'*w_stock}┴{'─'*w_ivp}┴{'─'*w_ivr}┴{'─'*w_iv}┴{'─'*w_days}┘"
     
+    table = "\n".join([top, header, separator] + rows + [bottom])
+    
+    # Overall coverage line
     coverage_line = ""
     if total_days > 0 and oldest and newest:
         coverage_line = f"📅 Historical data: {total_days} days (of 252) – from {oldest} to {newest}\n\n"
@@ -73,11 +76,14 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     message += "*Sorted by IV Percentile (Highest → Lowest)*\n\n"
     message += f"```\n{table}\n```\n\n"
     
+    # Recommendations
     high_ivp = [s for s in sorted_metrics if s['ivp'] >= 80]
-    low_ivp = [s for s in sorted_metrics if s['ivp'] <= 20]
+    low_ivp  = [s for s in sorted_metrics if s['ivp'] <= 20]
+    
     if high_ivp:
         message += f"🔴 *High IVP (>80%)*: {', '.join([s['symbol'] for s in high_ivp[:5]])}\n"
         message += "   *Consider credit spreads*\n\n"
+    
     if low_ivp:
         message += f"🟢 *Low IVP (<20%)*: {', '.join([s['symbol'] for s in low_ivp[:5]])}\n"
         message += "   *Consider debit spreads*\n\n"
