@@ -18,18 +18,11 @@ def safe_float(value):
         return 0.0
 
 def backfill(days=10):
-    """
-    Backfill historical IV data for the last `days` trading days.
-    Default = 10 (test run). Use days=504 for ~2 years.
-    """
     print(f"Starting backfill for the last {days} trading days...")
     init_database()
 
     end_date = datetime.now()
-    # Approximate trading days: we'll download a wider range and skip weekends/holidays
-    # For simplicity, we'll download from (end_date - days*2) to be safe,
-    # then rely on the downloader to skip non-trading days.
-    start_date = end_date - timedelta(days=days*2)
+    start_date = end_date - timedelta(days=days*2)  # buffer for weekends/holidays
 
     print(f"Downloading data from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
     all_data = download_historical_bhavcopy(start_date, end_date)
@@ -40,7 +33,7 @@ def backfill(days=10):
 
     print(f"Downloaded {len(all_data)} rows across all days")
 
-    # Column mapping (same as main.py)
+    # Column mapping
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
@@ -61,7 +54,6 @@ def backfill(days=10):
             return
 
     processed = 0
-    # Group by date and process only the most recent `days` trading days
     dates = sorted(all_data['date'].unique(), reverse=True)[:days]
     print(f"Processing {len(dates)} trading days (the most recent {days} days)")
 
@@ -78,7 +70,7 @@ def backfill(days=10):
                 if len(stock_data) == 0:
                     continue
 
-                # Spot price
+                # Spot
                 spot = 0.0
                 if 'UNDERLYING_PRICE' in stock_data.columns:
                     spot = safe_float(stock_data['UNDERLYING_PRICE'].iloc[0])
@@ -91,7 +83,6 @@ def backfill(days=10):
                 if spot <= 0:
                     continue
 
-                # Options for this symbol
                 opts = stock_data[stock_data['OPTION_TYP'].isin(['CE', 'PE'])]
                 if len(opts) == 0:
                     continue
@@ -101,7 +92,6 @@ def backfill(days=10):
                 strike_floats = [safe_float(s) for s in strikes]
                 atm_strike = min(strike_floats, key=lambda x: abs(x - spot))
 
-                # Get option at ATM strike (CE preferred)
                 call = opts[(opts['STRIKE_PR'] == atm_strike) & (opts['OPTION_TYP'] == 'CE')]
                 if len(call) == 0:
                     call = opts[(opts['STRIKE_PR'] == atm_strike) & (opts['OPTION_TYP'] == 'PE')]
@@ -109,7 +99,6 @@ def backfill(days=10):
                         continue
 
                 opt_price = safe_float(call['CLOSE'].iloc[0])
-                # Approx IV
                 if opt_price > 0 and spot > 0:
                     moneyness = abs(spot - atm_strike) / spot
                     current_iv = 20 + (moneyness * 60)
@@ -119,7 +108,8 @@ def backfill(days=10):
 
                 expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
 
-                store_daily_iv(date, symbol, current_iv, spot, expiry, atm_strike, 'CE')
+                # Store with uppercase
+                store_daily_iv(date, symbol.upper(), current_iv, spot, expiry, atm_strike, 'CE')
                 processed += 1
                 if processed % 100 == 0:
                     print(f"  Processed {processed} records...")
