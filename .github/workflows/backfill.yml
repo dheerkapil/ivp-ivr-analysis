@@ -8,6 +8,11 @@ on:
         required: true
         default: '10'
         type: string
+      prune:
+        description: 'Prune database to 504 days after backfill (true/false)'
+        required: false
+        default: 'false'
+        type: string
 
 permissions:
   contents: write
@@ -25,7 +30,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run backfill
-        run: python scripts/backfill.py --days ${{ github.event.inputs.days }}
+        run: |
+          if [ "${{ github.event.inputs.prune }}" == "true" ]; then
+            python scripts/backfill.py --days ${{ github.event.inputs.days }} --prune
+          else
+            python scripts/backfill.py --days ${{ github.event.inputs.days }}
+          fi
       - name: Commit and push database
         run: |
           git config user.email "action@github.com"
