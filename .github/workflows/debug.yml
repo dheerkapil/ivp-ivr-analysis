@@ -22,7 +22,7 @@ jobs:
       run: |
         pip install nselib pandas
     
-    - name: Debug nselib
+    - name: Debug nselib - Part 1
       run: |
         echo "=== Python Version ==="
         python --version
@@ -35,7 +35,9 @@ jobs:
         echo ""
         echo "=== Checking nselib.capital_market ==="
         python -c "from nselib import capital_market; print('capital_market attributes:', [x for x in dir(capital_market) if not x.startswith('_')])"
-        echo ""
+    
+    - name: Debug nselib - Part 2
+      run: |
         echo "=== Searching for bhavcopy functions ==="
         python -c "
 import nselib
@@ -52,6 +54,7 @@ for attr in dir(capital_market):
     
     - name: Try to download bhavcopy
       run: |
+        echo "=== Attempting to download ==="
         python -c "
 import nselib
 from nselib import capital_market
