@@ -14,28 +14,35 @@ def download_fno_bhavcopy(date=None):
         date = datetime.now()
     
     try:
-        # NSE F&O bhavcopy URL format
-        date_str = date.strftime("%d%m%Y")
-        
-        # Try the standard NSE URL for F&O bhavcopy
-        url = f"https://archives.nseindia.com/content/nsccl/fo{date_str}.csv.zip"
+        # Correct URL format
+        date_str = date.strftime("%Y%m%d")
+        url = f"https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{date_str}_F_0000.csv.zip"
         
         print(f"Downloading F&O bhavcopy from: {url}")
         
-        # Download the zip file
-        response = requests.get(url, timeout=30, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'application/zip'
-        })
+        # Use a more complete browser-like header
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Cache-Control': 'max-age=0'
+        }
+        
+        # Download with a longer timeout and allow redirects
+        response = requests.get(url, timeout=60, headers=headers, allow_redirects=True)
         
         if response.status_code != 200:
             print(f"Failed to download: HTTP {response.status_code}")
-            # Try alternative URL
-            alt_url = f"https://archives.nseindia.com/content/nsccl/fo{date.strftime('%d%b%Y').upper()}.csv.zip"
+            # Try alternative URL with lowercase
+            alt_url = f"https://nsearchives.nseindia.com/content/fo/bhavcopy_nse_fo_0_0_0_{date_str}_f_0000.csv.zip"
             print(f"Trying alternative: {alt_url}")
-            response = requests.get(alt_url, timeout=30, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            })
+            response = requests.get(alt_url, timeout=60, headers=headers, allow_redirects=True)
             
             if response.status_code != 200:
                 print(f"Alternative also failed: HTTP {response.status_code}")
@@ -73,7 +80,7 @@ def download_historical_bhavcopy(start_date, end_date):
             if data is not None and not data.empty:
                 data['date'] = current.strftime('%Y-%m-%d')
                 all_data.append(data)
-            time.sleep(2)  # Be respectful to NSE servers
+            time.sleep(3)  # Increased delay to be more respectful
         current += timedelta(days=1)
     
     if all_data:
