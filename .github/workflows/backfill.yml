@@ -2,6 +2,12 @@ name: Backfill Historical Data
 
 on:
   workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of recent trading days to backfill'
+        required: true
+        default: '10'
+        type: string
 
 jobs:
   backfill:
@@ -14,11 +20,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run backfill
-        run: python scripts/backfill.py
+        run: python scripts/backfill.py --days ${{ github.event.inputs.days }}
       - name: Commit and push database
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add data/iv_history.db
-          git commit -m "Backfill historical IV data" || echo "No changes"
+          git commit -m "Backfill historical IV data (${{ github.event.inputs.days }} days)" || echo "No changes"
           git push
