@@ -7,36 +7,32 @@ for attr in dir(nselib):
     if not attr.startswith('_'):
         print(f"  {attr}")
 
-print("\n=== capital_market attributes ===")
-for attr in dir(capital_market):
-    if not attr.startswith('_'):
-        print(f"  {attr}")
+print("\n=== Checking for 'fno' module ===")
+if hasattr(nselib, 'fno'):
+    print("  nselib.fno exists!")
+    print(f"  fno attributes: {[x for x in dir(nselib.fno) if not x.startswith('_')]}")
+else:
+    print("  nselib.fno does NOT exist")
 
-print("\n=== Searching for bhavcopy functions ===")
-for attr in dir(nselib):
-    if 'bhav' in attr.lower():
-        print(f"  nselib has: {attr}")
+print("\n=== Searching for 'bhav' in all modules ===")
+import pkgutil
+import importlib
 
-for attr in dir(capital_market):
-    if 'bhav' in attr.lower():
-        print(f"  capital_market has: {attr}")
-
-print("\n=== Attempting to download ===")
-date_str = datetime.now().strftime('%d-%m-%Y')
-print(f"Date: {date_str}")
-
-if hasattr(capital_market, 'fno_bhav_copy'):
-    print("Found capital_market.fno_bhav_copy - trying...")
+for module_name in ['nselib', 'nselib.capital_market', 'nselib.fno']:
     try:
-        result = capital_market.fno_bhav_copy(date_str)
-        print(f"Success! Result type: {type(result)}")
-    except Exception as e:
-        print(f"Error: {e}")
+        module = importlib.import_module(module_name)
+        for attr in dir(module):
+            if 'bhav' in attr.lower():
+                print(f"  {module_name}.{attr}")
+    except:
+        pass
 
-if hasattr(nselib, 'fno_bhav_copy'):
-    print("Found nselib.fno_bhav_copy - trying...")
+print("\n=== Searching for 'fno' in all modules ===")
+for module_name in ['nselib', 'nselib.capital_market']:
     try:
-        result = nselib.fno_bhav_copy(date_str)
-        print(f"Success! Result type: {type(result)}")
-    except Exception as e:
-        print(f"Error: {e}")
+        module = importlib.import_module(module_name)
+        for attr in dir(module):
+            if attr.lower().startswith('fno'):
+                print(f"  {module_name}.{attr}")
+    except:
+        pass
