@@ -12,7 +12,7 @@ from src.downloader import download_fno_bhavcopy
 from src.database import (
     init_database, store_daily_iv, store_daily_metrics,
     get_historical_ivs, get_symbol_history_count, get_data_coverage,
-    trim_old_data          # <--- added import
+    trim_old_data
 )
 from src.metrics import calculate_ivr, calculate_ivp
 from src.telegram_bot import send_telegram_message, format_results
@@ -154,14 +154,20 @@ def main():
     coverage = get_data_coverage()
     total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
 
+    # --- Send Telegram messages (split into chunks) ---
     print("\nSending Telegram notification...")
     if stock_metrics:
-        message = format_results(stock_metrics, today, total_days, oldest, newest)
-        send_telegram_message(message)
+        messages = format_results(stock_metrics, today, total_days, oldest, newest)
+        for idx, msg in enumerate(messages):
+            if idx == 0:
+                print(f"Sending part {idx+1}/{len(messages)} (header + first chunk)")
+            else:
+                print(f"Sending part {idx+1}/{len(messages)} (continuation)")
+            send_telegram_message(msg)
     else:
         print("No metrics to send")
 
-    # --- AUTO-TRIM: Keep only the last 253 days ---
+    # --- Auto-trim to 253 days ---
     trim_old_data(253)
 
     print("\n=== Analysis Complete ===")
