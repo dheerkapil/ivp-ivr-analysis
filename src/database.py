@@ -104,3 +104,38 @@ def get_symbol_history_count(symbol):
     result = cursor.fetchone()[0]
     conn.close()
     return result
+
+def prune_old_data(days_to_keep=504):
+    """
+    Delete records older than the most recent `days_to_keep` unique trading dates.
+    Keeps the database size constant.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Get the list of unique dates sorted descending
+    cursor.execute("SELECT DISTINCT date FROM daily_iv ORDER BY date DESC")
+    all_dates = [row[0] for row in cursor.fetchall()]
+    
+    if len(all_dates) <= days_to_keep:
+        conn.close()
+        print(f"✅ Database has {len(all_dates)} days, no pruning needed (target: {days_to_keep})")
+        return
+    
+    # Keep the most recent `days_to_keep` dates
+    keep_dates = all_dates[:days_to_keep]
+    # Convert to tuple for SQL query
+    placeholders = ','.join(['?'] * len(keep_dates))
+    
+    # Delete records not in the keep list
+    delete_query = f"DELETE FROM daily_iv WHERE date NOT IN ({placeholders})"
+    cursor.execute(delete_query, keep_dates)
+    deleted = cursor.rowcount
+    
+    # Also clean up daily_metrics table
+    cursor.execute(f"DELETE FROM daily_metrics WHERE date NOT IN ({placeholders})", keep_dates)
+    deleted_metrics = cursor.rowcount
+    
+    conn.commit()
+    conn.close()
+    print(f"🗑️ Pruned {deleted} old IV records and {deleted_metrics} metrics records. Keeping {len(keep_dates)} days.")
