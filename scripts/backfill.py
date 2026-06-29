@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.downloader import download_historical_bhavcopy
-from src.database import init_database, store_daily_iv
+from src.database import init_database, store_daily_iv, prune_old_data
 
 def safe_float(value):
     if value is None:
@@ -17,7 +17,7 @@ def safe_float(value):
     except (ValueError, TypeError):
         return 0.0
 
-def backfill(days=10):
+def backfill(days=10, prune=False):
     print(f"Starting backfill for the last {days} trading days...")
     init_database()
 
@@ -108,7 +108,6 @@ def backfill(days=10):
 
                 expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
 
-                # Store with uppercase
                 store_daily_iv(date, symbol.upper(), current_iv, spot, expiry, atm_strike, 'CE')
                 processed += 1
                 if processed % 100 == 0:
@@ -120,10 +119,16 @@ def backfill(days=10):
                 continue
 
     print(f"\nBackfill complete! Processed {processed} records.")
+    
+    if prune:
+        prune_old_data(days_to_keep=504)
+        print("Database pruned to 504 days.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Backfill historical IV data")
     parser.add_argument('--days', type=int, default=10,
                         help='Number of recent trading days to backfill (default: 10)')
+    parser.add_argument('--prune', action='store_true',
+                        help='Prune database to 504 days after backfill')
     args = parser.parse_args()
-    backfill(days=args.days)
+    backfill(days=args.days, prune=args.prune)
