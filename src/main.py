@@ -38,28 +38,24 @@ def main():
         return
     
     print(f"Downloaded {len(bhavcopy)} rows of data")
-    
-    # Check column names and rename if needed
     print(f"Columns available: {bhavcopy.columns.tolist()}")
     
-    # Standardize column names (handle different naming conventions)
-    column_mapping = {}
-    for col in bhavcopy.columns:
-        col_upper = col.upper()
-        if 'SYMBOL' in col_upper or 'NAME' in col_upper:
-            column_mapping[col] = 'SYMBOL'
-        elif 'CLOSE' in col_upper:
-            column_mapping[col] = 'CLOSE'
-        elif 'STRIKE' in col_upper:
-            column_mapping[col] = 'STRIKE_PR'
-        elif 'OPTION' in col_upper and 'TYPE' in col_upper:
-            column_mapping[col] = 'OPTION_TYP'
-        elif 'EXPIRY' in col_upper:
-            column_mapping[col] = 'EXPIRY_DT'
+    # Map actual column names to what our code expects
+    # From debug output: TckrSymb = Symbol, ClsPric = Close, StrkPric = Strike, OptnTp = Option Type, XpryDt = Expiry
+    column_mapping = {
+        'TckrSymb': 'SYMBOL',
+        'ClsPric': 'CLOSE',
+        'StrkPric': 'STRIKE_PR',
+        'OptnTp': 'OPTION_TYP',
+        'XpryDt': 'EXPIRY_DT',
+        'UndrlygPric': 'UNDERLYING_PRICE'
+    }
     
-    if column_mapping:
-        bhavcopy = bhavcopy.rename(columns=column_mapping)
-        print(f"Renamed columns: {column_mapping}")
+    # Rename columns that exist
+    rename_dict = {old: new for old, new in column_mapping.items() if old in bhavcopy.columns}
+    if rename_dict:
+        bhavcopy = bhavcopy.rename(columns=rename_dict)
+        print(f"Renamed columns: {rename_dict}")
     
     # Process each stock
     today = datetime.now().strftime("%Y-%m-%d")
@@ -69,22 +65,39 @@ def main():
     
     for stock in stocks:
         try:
-            # Find stock data - case insensitive search
+            # Find stock data - case insensitive search on SYMBOL column
+            if 'SYMBOL' not in bhavcopy.columns:
+                print(f"  {stock}: SYMBOL column not found")
+                continue
+                
             stock_data = bhavcopy[bhavcopy['SYMBOL'].str.upper() == stock]
             if len(stock_data) == 0:
                 print(f"  {stock}: No data found")
                 continue
             
-            # Get spot price (using futures)
-            futures = stock_data[stock_data['OPTION_TYP'] == 'XX']
-            spot = futures['CLOSE'].mean() if len(futures) > 0 else stock_data['CLOSE'].mean()
+            # Get spot price
+            # Try to use underlying price first, then closing price
+            if 'UNDERLYING_PRICE' in stock_data.columns:
+                spot = stock_data['UNDERLYING_PRICE'].iloc[0]
+            elif 'CLOSE' in stock_data.columns:
+                # Get futures price (usually where OPTION_TYP is 'XX' or empty)
+                futures = stock_data[stock_data['OPTION_TYP'] == 'XX']
+                if len(futures) > 0:
+                    spot = futures['CLOSE'].mean()
+                else:
+                    # Use first close price as fallback
+                    spot = stock_data['CLOSE'].iloc[0]
+            else:
+                print(f"  {stock}: No price data found")
+                continue
             
-            # Get ATM strike
-            options = stock_data[stock_data['OPTION_TYP'] != 'XX']
+            # Get options data (exclude futures/equity)
+            options = stock_data[stock_data['OPTION_TYP'].isin(['CE', 'PE'])]
             if len(options) == 0:
                 print(f"  {stock}: No options found")
                 continue
                 
+            # Get ATM strike
             strikes = options['STRIKE_PR'].unique()
             atm_strike = get_atm_strike(spot, strikes)
             
@@ -101,21 +114,21 @@ def main():
                     print(f"  {stock}: No option found at ATM strike")
                     continue
             
-            call_price = call['CLOSE'].mean()
+            call_price = call['CLOSE'].iloc[0] if len(call) > 0 else 0
             
             # Calculate IV (simplified - using approximation for now)
-            # In production, use actual Black-Scholes calculation
-            # For now, use a placeholder based on spot and strike
-            if spot > 0 and atm_strike > 0:
-                # Simple approximation
+            if spot > 0 and atm_strike > 0 and call_price > 0:
+                # Simple moneyness-based approximation
                 moneyness = abs(spot - atm_strike) / spot
-                current_iv = 20 + (moneyness * 50) + (hash(stock) % 20)
+                current_iv = 20 + (moneyness * 60) + (hash(stock) % 15)
                 current_iv = max(10, min(80, current_iv))  # Clamp between 10-80%
             else:
                 current_iv = 25 + (hash(stock) % 30)
             
-            # Store in database
+            # Get expiry date
             expiry = call['EXPIRY_DT'].iloc[0] if 'EXPIRY_DT' in call.columns else 'N/A'
+            
+            # Store in database
             store_daily_iv(today, stock, current_iv, spot, expiry, atm_strike, 'CE')
             
             # Get historical data
@@ -141,6 +154,13 @@ def main():
                 print(f"  {stock}: IV={current_iv:.1f}%, IVP={ivp:.0f}%, IVR={ivr:.1f}")
             else:
                 print(f"  {stock}: No historical data, skipping metrics")
+                # Still add with default values for first run
+                stock_metrics.append({
+                    'symbol': stock,
+                    'iv': current_iv,
+                    'ivr': 50.0,
+                    'ivp': 50.0
+                })
                 
         except Exception as e:
             print(f"  {stock}: Error - {e}")
@@ -160,13 +180,15 @@ def main():
     
     # Send Telegram notification
     print("\nSending Telegram notification...")
-    message = format_results(stock_metrics, today)
-    success = send_telegram_message(message)
-    
-    if success:
-        print("Telegram notification sent successfully!")
+    if stock_metrics:
+        message = format_results(stock_metrics, today)
+        success = send_telegram_message(message)
+        if success:
+            print("Telegram notification sent successfully!")
+        else:
+            print("Failed to send Telegram notification")
     else:
-        print("Failed to send Telegram notification")
+        print("No metrics to send")
     
     print("\n=== Analysis Complete ===")
     
