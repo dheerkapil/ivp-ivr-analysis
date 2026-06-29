@@ -9,11 +9,16 @@ on:
         default: '10'
         type: string
 
+permissions:
+  contents: write  # <-- Add this to grant write access
+
 jobs:
   backfill:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Optional, but ensures using the token
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
