@@ -13,7 +13,7 @@ def download_fno_bhavcopy(date=None):
     
     try:
         # Fetch bhavcopy using nselib
-        bhavcopy = nselib.fno.fno_bhav_copy(date.strftime("%d-%m-%Y"))
+        bhavcopy = capital_market.fno_bhav_copy(date.strftime("%d-%m-%Y"))
         return bhavcopy
     except Exception as e:
         print(f"Error downloading bhavcopy for {date}: {e}")
