@@ -39,14 +39,13 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     
     sorted_metrics = sorted(stock_metrics, key=lambda x: x['ivp'], reverse=True)
     
-    # Column widths (including padding spaces)
+    # Column widths
     w_stock = 10
     w_ivp = 6
     w_ivr = 6
     w_iv = 6
     w_days = 6
     
-    # Build header
     header = f"┌{'─'*w_stock}┬{'─'*w_ivp}┬{'─'*w_ivr}┬{'─'*w_iv}┬{'─'*w_days}┐\n"
     header += f"│{'STOCK'.center(w_stock)}│{'IVP'.center(w_ivp)}│{'IVR'.center(w_ivr)}│{'IV'.center(w_iv)}│{'Days'.center(w_days)}│\n"
     header += f"├{'─'*w_stock}┼{'─'*w_ivp}┼{'─'*w_ivr}┼{'─'*w_iv}┼{'─'*w_days}┤\n"
@@ -61,10 +60,8 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
         rows.append(f"│{symbol}│{ivp}│{ivr}│{iv}│{days}│")
     
     footer = f"└{'─'*w_stock}┴{'─'*w_ivp}┴{'─'*w_ivr}┴{'─'*w_iv}┴{'─'*w_days}┘"
-    
     table = header + "\n".join(rows) + "\n" + footer
     
-    # Coverage header
     coverage_line = ""
     if total_days > 0 and oldest and newest:
         coverage_line = f"📅 Historical data: {total_days} days (of 252) – from {oldest} to {newest}\n\n"
@@ -76,7 +73,6 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     message += "*Sorted by IV Percentile (Highest → Lowest)*\n\n"
     message += f"```\n{table}\n```\n\n"
     
-    # Recommendations
     high_ivp = [s for s in sorted_metrics if s['ivp'] >= 80]
     low_ivp = [s for s in sorted_metrics if s['ivp'] <= 20]
     if high_ivp:
