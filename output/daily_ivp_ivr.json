@@ -1,4 +1,125 @@
 {
   "date": "2026-06-29",
-  "stocks": []
+  "stocks": [
+    {
+      "symbol": "RELIANCE",
+      "iv": 20.0,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "TCS",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "HDFCBANK",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "INFY",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "ICICIBANK",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "SBIN",
+      "iv": 20.2,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "HINDUNILVR",
+      "iv": 20.2,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "ITC",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "BHARTIARTL",
+      "iv": 20.0,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "KOTAKBANK",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "LT",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "M&M",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "MARUTI",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "SUNPHARMA",
+      "iv": 20.2,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "TITAN",
+      "iv": 20.3,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "BAJFINANCE",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "WIPRO",
+      "iv": 20.2,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "HCLTECH",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "ASIANPAINT",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    },
+    {
+      "symbol": "AXISBANK",
+      "iv": 20.1,
+      "ivr": 50.0,
+      "ivp": 0.0
+    }
+  ]
 }
