@@ -11,7 +11,8 @@ from src.config import load_config, get_project_root
 from src.downloader import download_fno_bhavcopy
 from src.database import (
     init_database, store_daily_iv, store_daily_metrics,
-    get_historical_ivs, get_symbol_history_count, get_data_coverage
+    get_historical_ivs, get_symbol_history_count, get_data_coverage,
+    prune_old_data
 )
 from src.metrics import calculate_ivr, calculate_ivp
 from src.telegram_bot import send_telegram_message, format_results
@@ -170,6 +171,9 @@ def main():
         send_telegram_message(message)
     else:
         print("No metrics to send")
+
+    # Prune old data to keep database size constant
+    prune_old_data(days_to_keep=504)  # Keep 504 trading days (~2 years)
 
     print("\n=== Analysis Complete ===")
     if stock_metrics:
