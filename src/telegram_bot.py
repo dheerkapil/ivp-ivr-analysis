@@ -48,6 +48,7 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     
     message = f"📊 *NSE IVP/IVR Report* - {date}\n\n"
     message += coverage_line
+    message += f"*Total symbols: {len(sorted_metrics)}*\n\n"
     message += "*Sorted by IV Percentile (Highest → Lowest)*\n\n"
     message += "```\n"
     
@@ -55,8 +56,8 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     message += f"{'STOCK':<12} {'IVP':>6} {'IVR':>6} {'IV':>6} {'Days':>6}\n"
     message += f"{'-'*12} {'-'*6} {'-'*6} {'-'*6} {'-'*6}\n"
     
-    # Rows (top 20)
-    for stock in sorted_metrics[:20]:
+    # All rows – no limit
+    for stock in sorted_metrics:   # <--- removed [:20]
         symbol = stock['symbol'][:12]
         ivp = f"{int(round(stock['ivp']))}%"
         ivr = f"{round(stock['ivr'], 1)}"
@@ -72,15 +73,21 @@ def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
     
     if high_ivp:
         message += f"🔴 *High IVP (>80%)*: {', '.join([s['symbol'] for s in high_ivp[:5]])}\n"
+        if len(high_ivp) > 5:
+            message += f"   *and {len(high_ivp)-5} more*\n"
         message += "   *Consider credit spreads*\n\n"
     
     if low_ivp:
         message += f"🟢 *Low IVP (<20%)*: {', '.join([s['symbol'] for s in low_ivp[:5]])}\n"
+        if len(low_ivp) > 5:
+            message += f"   *and {len(low_ivp)-5} more*\n"
         message += "   *Consider debit spreads*\n\n"
     
     low_history = [s for s in sorted_metrics if s.get('hist_days', 0) < 30]
     if low_history:
         message += f"⚠️ *Low history (<30 days)*: {', '.join([s['symbol'] for s in low_history[:5]])}\n"
+        if len(low_history) > 5:
+            message += f"   *and {len(low_history)-5} more*\n"
         message += "   IVP/IVR for these stocks are less reliable.\n"
     
     return message
