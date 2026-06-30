@@ -26,6 +26,33 @@ def safe_float(value):
     except (ValueError, TypeError):
         return 0.0
 
+def load_todays_metrics(date):
+    """Load today's metrics from the database and return them as stock_metrics list."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT symbol, current_iv, iv_rank, iv_percentile
+        FROM daily_metrics
+        WHERE date = ?
+    """, (date,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        return []
+
+    stock_metrics = []
+    for symbol, iv, ivr, ivp in rows:
+        hist_days = get_symbol_history_count(symbol)
+        stock_metrics.append({
+            'symbol': symbol,
+            'iv': round(iv, 1),
+            'ivr': round(ivr, 1),
+            'ivp': round(ivp, 1),
+            'hist_days': hist_days
+        })
+    return stock_metrics
+
 def main():
     print("=== NSE IVP/IVR Analysis Started ===")
     print(f"Time: {datetime.now()}")
@@ -33,20 +60,36 @@ def main():
     config = load_config()
     init_database()
 
-    # ----------------------------
-    # SKIP if today's data already exists (prevents duplicate runs)
-    # ----------------------------
     today = datetime.now().strftime("%Y-%m-%d")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM daily_iv WHERE date = ?", (today,))
     count = cursor.fetchone()[0]
     conn.close()
-    if count > 0:
-        print(f"✅ Data for {today} already exists. Skipping download.")
-        return
 
-    # Ensure output directory exists
+    # If today's data already exists, load and send the report without downloading
+    if count > 0:
+        print(f"✅ Data for {today} already exists. Loading existing metrics for report.")
+        stock_metrics = load_todays_metrics(today)
+        if not stock_metrics:
+            print("⚠️ No metrics found for today – they might not have been stored. Running full process.")
+            # Fall through to download and process
+        else:
+            # Send report from existing data
+            coverage = get_data_coverage()
+            total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
+
+            print("\nSending Telegram notification...")
+            messages = format_results(stock_metrics, today, total_days, oldest, newest)
+            for idx, msg in enumerate(messages):
+                print(f"Sending part {idx+1}/{len(messages)}")
+                send_telegram_message(msg)
+
+            # Optionally, we could still trim, but it's not needed since it's already trimmed daily.
+            print("\n=== Analysis Complete (from cache) ===")
+            return
+
+    # --- If we reach here, we need to download and process ---
     output_dir = get_project_root() / "output"
     output_dir.mkdir(exist_ok=True)
 
@@ -172,10 +215,7 @@ def main():
     if stock_metrics:
         messages = format_results(stock_metrics, today, total_days, oldest, newest)
         for idx, msg in enumerate(messages):
-            if idx == 0:
-                print(f"Sending part {idx+1}/{len(messages)} (header + first chunk)")
-            else:
-                print(f"Sending part {idx+1}/{len(messages)} (continuation)")
+            print(f"Sending part {idx+1}/{len(messages)}")
             send_telegram_message(msg)
     else:
         print("No metrics to send")
