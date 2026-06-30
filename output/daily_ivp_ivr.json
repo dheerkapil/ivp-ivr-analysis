@@ -4,1514 +4,1514 @@
     {
       "symbol": "ABCAPITAL",
       "iv": 20.3,
-      "ivr": 62.7,
-      "ivp": 68.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ADANIENSOL",
       "iv": 20.3,
-      "ivr": 76.3,
-      "ivp": 92.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GODFRYPHLP",
       "iv": 20.2,
-      "ivr": 60.4,
-      "ivp": 66.7,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INDHOTEL",
       "iv": 20.1,
-      "ivr": 21.6,
-      "ivp": 38.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INOXWIND",
       "iv": 20.1,
-      "ivr": 8.8,
-      "ivp": 16.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "JINDALSTEL",
       "iv": 20.0,
-      "ivr": 2.2,
-      "ivp": 4.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MPHASIS",
       "iv": 20.0,
-      "ivr": 6.0,
-      "ivp": 10.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NESTLEIND",
       "iv": 20.2,
-      "ivr": 81.3,
-      "ivp": 84.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NTPC",
       "iv": 20.1,
-      "ivr": 61.3,
-      "ivp": 66.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PRESTIGE",
       "iv": 20.2,
-      "ivr": 37.1,
-      "ivp": 45.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "RBLBANK",
       "iv": 20.2,
-      "ivr": 30.6,
-      "ivp": 32.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SHREECEM",
       "iv": 20.0,
-      "ivr": 0.0,
+      "ivr": 50.0,
       "ivp": 0.0,
-      "hist_days": 169
+      "hist_days": 1
     },
     {
       "symbol": "TATAELXSI",
       "iv": 20.3,
-      "ivr": 55.2,
-      "ivp": 81.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TATASTEEL",
       "iv": 20.2,
-      "ivr": 41.9,
-      "ivp": 72.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TCS",
       "iv": 20.2,
-      "ivr": 96.9,
-      "ivp": 98.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INDIANB",
       "iv": 20.2,
-      "ivr": 63.6,
-      "ivp": 75.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ADANIPOWER",
       "iv": 20.3,
-      "ivr": 86.5,
-      "ivp": 96.7,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "APLAPOLLO",
       "iv": 20.3,
-      "ivr": 92.8,
-      "ivp": 92.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "AUROPHARMA",
       "iv": 20.0,
-      "ivr": 10.2,
-      "ivp": 14.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BAJAJHLDNG",
       "iv": 20.0,
-      "ivr": 5.2,
-      "ivp": 9.2,
-      "hist_days": 120
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BANKNIFTY",
       "iv": 20.0,
-      "ivr": 78.8,
-      "ivp": 83.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BSE",
       "iv": 20.2,
-      "ivr": 39.0,
-      "ivp": 51.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CDSL",
       "iv": 20.3,
-      "ivr": 50.8,
-      "ivp": 58.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CONCOR",
       "iv": 20.0,
-      "ivr": 9.9,
-      "ivp": 12.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DALBHARAT",
       "iv": 20.0,
-      "ivr": 5.0,
-      "ivp": 7.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "EICHERMOT",
       "iv": 20.2,
-      "ivr": 92.6,
-      "ivp": 94.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INDIGO",
       "iv": 20.2,
-      "ivr": 60.3,
-      "ivp": 72.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "KEI",
       "iv": 20.2,
-      "ivr": 70.1,
-      "ivp": 77.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MFSL",
       "iv": 20.2,
-      "ivr": 40.7,
-      "ivp": 36.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PAGEIND",
       "iv": 20.2,
-      "ivr": 39.7,
-      "ivp": 57.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PERSISTENT",
       "iv": 20.3,
-      "ivr": 54.1,
-      "ivp": 76.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PNBHOUSING",
       "iv": 20.1,
-      "ivr": 23.7,
-      "ivp": 23.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SBILIFE",
       "iv": 20.2,
-      "ivr": 59.7,
-      "ivp": 66.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TIINDIA",
       "iv": 20.2,
-      "ivr": 36.1,
-      "ivp": 71.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TITAN",
       "iv": 20.1,
-      "ivr": 14.4,
-      "ivp": 29.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TRENT",
       "iv": 20.0,
-      "ivr": 6.3,
-      "ivp": 13.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "UNIONBANK",
       "iv": 20.0,
-      "ivr": 5.0,
-      "ivp": 5.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "YESBANK",
       "iv": 20.4,
-      "ivr": 29.3,
-      "ivp": 38.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "AMBUJACEM",
       "iv": 20.3,
-      "ivr": 73.0,
-      "ivp": 90.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "JIOFIN",
       "iv": 20.3,
-      "ivr": 51.7,
-      "ivp": 79.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "KAYNES",
       "iv": 20.4,
-      "ivr": 61.7,
-      "ivp": 87.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NYKAA",
       "iv": 20.2,
-      "ivr": 57.8,
-      "ivp": 68.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ABB",
       "iv": 20.2,
-      "ivr": 54.1,
-      "ivp": 54.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BDL",
       "iv": 20.4,
-      "ivr": 76.6,
-      "ivp": 85.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BEL",
       "iv": 20.3,
-      "ivr": 70.6,
-      "ivp": 67.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BHEL",
       "iv": 20.1,
-      "ivr": 46.0,
-      "ivp": 57.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CGPOWER",
       "iv": 20.1,
-      "ivr": 27.6,
-      "ivp": 31.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GMRAIRPORT",
       "iv": 20.0,
-      "ivr": 14.5,
-      "ivp": 15.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HAL",
       "iv": 20.3,
-      "ivr": 68.8,
-      "ivp": 74.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "JUBLFOOD",
       "iv": 20.3,
-      "ivr": 69.5,
-      "ivp": 88.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "OBEROIRLTY",
       "iv": 20.3,
-      "ivr": 78.7,
-      "ivp": 82.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ONGC",
       "iv": 20.0,
-      "ivr": 8.4,
-      "ivp": 28.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PNB",
       "iv": 20.2,
-      "ivr": 59.0,
-      "ivp": 70.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "POWERGRID",
       "iv": 20.3,
-      "ivr": 90.4,
-      "ivp": 96.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SONACOMS",
       "iv": 20.0,
-      "ivr": 1.5,
-      "ivp": 2.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HCLTECH",
       "iv": 20.1,
-      "ivr": 22.4,
-      "ivp": 38.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "AXISBANK",
       "iv": 20.2,
-      "ivr": 78.3,
-      "ivp": 76.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "COCHINSHIP",
       "iv": 20.3,
-      "ivr": 78.2,
-      "ivp": 81.7,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ETERNAL",
       "iv": 20.1,
-      "ivr": 13.4,
-      "ivp": 17.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GVT&D",
       "iv": 20.5,
-      "ivr": 93.1,
-      "ivp": 69.6,
-      "hist_days": 23
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HINDPETRO",
       "iv": 20.1,
-      "ivr": 20.0,
-      "ivp": 19.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LODHA",
       "iv": 20.3,
-      "ivr": 55.3,
-      "ivp": 85.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TVSMOTOR",
       "iv": 20.0,
-      "ivr": 2.5,
-      "ivp": 7.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "IDFCFIRSTB",
       "iv": 20.4,
-      "ivr": 83.2,
-      "ivp": 92.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BAJAJ-AUTO",
       "iv": 20.1,
-      "ivr": 28.6,
-      "ivp": 35.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BOSCHLTD",
       "iv": 20.2,
-      "ivr": 38.1,
-      "ivp": 58.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CIPLA",
       "iv": 20.2,
-      "ivr": 81.3,
-      "ivp": 87.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GODREJPROP",
       "iv": 20.2,
-      "ivr": 56.3,
-      "ivp": 66.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "KOTAKBANK",
       "iv": 20.0,
-      "ivr": 10.7,
-      "ivp": 14.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "M&M",
       "iv": 20.2,
-      "ivr": 40.6,
-      "ivp": 56.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NATIONALUM",
       "iv": 20.1,
-      "ivr": 17.0,
-      "ivp": 26.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NHPC",
       "iv": 20.2,
-      "ivr": 60.9,
-      "ivp": 63.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PGEL",
       "iv": 20.4,
-      "ivr": 64.4,
-      "ivp": 67.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TECHM",
       "iv": 20.2,
-      "ivr": 46.1,
-      "ivp": 52.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ULTRACEMCO",
       "iv": 20.2,
-      "ivr": 92.1,
-      "ivp": 94.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DLF",
       "iv": 20.0,
-      "ivr": 0.9,
-      "ivp": 1.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DRREDDY",
       "iv": 20.1,
-      "ivr": 53.7,
-      "ivp": 53.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "EXIDEIND",
       "iv": 20.0,
-      "ivr": 3.9,
-      "ivp": 3.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PAYTM",
       "iv": 20.1,
-      "ivr": 14.6,
-      "ivp": 23.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BIOCON",
       "iv": 20.2,
-      "ivr": 58.5,
-      "ivp": 66.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "COALINDIA",
       "iv": 20.1,
-      "ivr": 42.6,
-      "ivp": 66.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "COLPAL",
       "iv": 20.1,
-      "ivr": 19.8,
-      "ivp": 23.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "FEDERALBNK",
       "iv": 20.0,
-      "ivr": 2.9,
-      "ivp": 0.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "FORCEMOT",
       "iv": 20.3,
-      "ivr": 31.3,
-      "ivp": 26.7,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GODREJCP",
       "iv": 20.0,
-      "ivr": 0.0,
+      "ivr": 50.0,
       "ivp": 0.0,
-      "hist_days": 169
+      "hist_days": 1
     },
     {
       "symbol": "KPITTECH",
       "iv": 20.1,
-      "ivr": 28.3,
-      "ivp": 41.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LT",
       "iv": 20.0,
-      "ivr": 30.0,
-      "ivp": 36.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NMDC",
       "iv": 20.1,
-      "ivr": 28.2,
-      "ivp": 32.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "OIL",
       "iv": 20.3,
-      "ivr": 80.3,
-      "ivp": 87.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PHOENIXLTD",
       "iv": 20.3,
-      "ivr": 76.0,
-      "ivp": 70.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PIIND",
       "iv": 20.1,
-      "ivr": 26.0,
-      "ivp": 50.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TATACONSUM",
       "iv": 20.2,
-      "ivr": 86.5,
-      "ivp": 94.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "WIPRO",
       "iv": 20.1,
-      "ivr": 34.6,
-      "ivp": 48.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BANKINDIA",
       "iv": 20.0,
-      "ivr": 4.3,
-      "ivp": 10.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BHARATFORG",
       "iv": 20.1,
-      "ivr": 28.2,
-      "ivp": 35.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CROMPTON",
       "iv": 20.1,
-      "ivr": 9.4,
-      "ivp": 19.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INDUSTOWER",
       "iv": 20.3,
-      "ivr": 69.5,
-      "ivp": 69.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PATANJALI",
       "iv": 20.2,
-      "ivr": 43.0,
-      "ivp": 54.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "POWERINDIA",
       "iv": 20.1,
-      "ivr": 26.4,
-      "ivp": 41.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SOLARINDS",
       "iv": 20.2,
-      "ivr": 30.0,
-      "ivp": 55.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TATAPOWER",
       "iv": 20.1,
-      "ivr": 20.3,
-      "ivp": 28.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "VOLTAS",
       "iv": 20.1,
-      "ivr": 23.5,
-      "ivp": 25.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NAM-INDIA",
       "iv": 20.1,
-      "ivr": 13.8,
-      "ivp": 25.0,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "APOLLOHOSP",
       "iv": 20.1,
-      "ivr": 60.2,
-      "ivp": 61.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DELHIVERY",
       "iv": 20.3,
-      "ivr": 72.9,
-      "ivp": 72.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DIXON",
       "iv": 20.1,
-      "ivr": 17.0,
-      "ivp": 35.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "FORTIS",
       "iv": 20.2,
-      "ivr": 50.7,
-      "ivp": 68.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GLENMARK",
       "iv": 20.1,
-      "ivr": 36.1,
-      "ivp": 38.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HINDUNILVR",
       "iv": 20.1,
-      "ivr": 18.1,
-      "ivp": 19.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ICICIPRULI",
       "iv": 20.3,
-      "ivr": 82.5,
-      "ivp": 95.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "IDEA",
       "iv": 21.9,
-      "ivr": 57.7,
-      "ivp": 72.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NBCC",
       "iv": 20.0,
-      "ivr": 10.8,
-      "ivp": 14.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "POLYCAB",
       "iv": 20.2,
-      "ivr": 58.3,
-      "ivp": 60.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ALKEM",
       "iv": 20.2,
-      "ivr": 77.9,
-      "ivp": 76.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ASHOKLEY",
       "iv": 20.1,
-      "ivr": 15.2,
-      "ivp": 22.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ASTRAL",
       "iv": 20.2,
-      "ivr": 46.0,
-      "ivp": 45.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BANKBARODA",
       "iv": 20.0,
-      "ivr": 8.1,
-      "ivp": 11.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BHARTIARTL",
       "iv": 20.3,
-      "ivr": 79.5,
-      "ivp": 83.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BPCL",
       "iv": 20.3,
-      "ivr": 54.1,
-      "ivp": 67.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CHOLAFIN",
       "iv": 20.3,
-      "ivr": 85.4,
-      "ivp": 88.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CUMMINSIND",
       "iv": 20.1,
-      "ivr": 26.7,
-      "ivp": 28.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DIVISLAB",
       "iv": 20.2,
-      "ivr": 78.5,
-      "ivp": 82.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "IEX",
       "iv": 20.1,
-      "ivr": 11.1,
-      "ivp": 20.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "JSWENERGY",
       "iv": 20.2,
-      "ivr": 31.2,
-      "ivp": 56.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "KALYANKJIL",
       "iv": 20.3,
-      "ivr": 42.2,
-      "ivp": 58.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LAURUSLABS",
       "iv": 20.1,
-      "ivr": 32.7,
-      "ivp": 37.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LTF",
       "iv": 20.1,
-      "ivr": 25.4,
-      "ivp": 44.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MANAPPURAM",
       "iv": 20.2,
-      "ivr": 32.3,
-      "ivp": 52.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MARICO",
       "iv": 20.1,
-      "ivr": 22.6,
-      "ivp": 45.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MOTILALOFS",
       "iv": 20.1,
-      "ivr": 18.2,
-      "ivp": 20.0,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "RELIANCE",
       "iv": 20.2,
-      "ivr": 80.9,
-      "ivp": 85.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SRF",
       "iv": 20.0,
-      "ivr": 4.2,
-      "ivp": 10.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SWIGGY",
       "iv": 20.2,
-      "ivr": 28.6,
-      "ivp": 32.5,
-      "hist_days": 120
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "VMM",
       "iv": 20.0,
-      "ivr": 7.8,
-      "ivp": 6.7,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ZYDUSLIFE",
       "iv": 20.1,
-      "ivr": 42.3,
-      "ivp": 48.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INDUSINDBK",
       "iv": 20.3,
-      "ivr": 69.1,
-      "ivp": 75.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MOTHERSON",
       "iv": 20.0,
-      "ivr": 15.5,
-      "ivp": 13.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ADANIGREEN",
       "iv": 20.1,
-      "ivr": 14.9,
-      "ivp": 29.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BAJAJFINSV",
       "iv": 20.0,
-      "ivr": 2.1,
-      "ivp": 3.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BLUESTARCO",
       "iv": 20.3,
-      "ivr": 85.5,
-      "ivp": 90.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DABUR",
       "iv": 20.3,
-      "ivr": 90.9,
-      "ivp": 95.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HDFCAMC",
       "iv": 20.2,
-      "ivr": 62.4,
-      "ivp": 73.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "IOC",
       "iv": 20.2,
-      "ivr": 76.4,
-      "ivp": 88.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MAXHEALTH",
       "iv": 20.0,
-      "ivr": 7.7,
-      "ivp": 14.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PIDILITIND",
       "iv": 20.1,
-      "ivr": 25.4,
-      "ivp": 43.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SBIN",
       "iv": 20.2,
-      "ivr": 63.4,
-      "ivp": 90.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ADANIPORTS",
       "iv": 20.3,
-      "ivr": 77.0,
-      "ivp": 83.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ITC",
       "iv": 20.0,
-      "ivr": 4.4,
-      "ivp": 12.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NIFTYNXT50",
       "iv": 20.0,
-      "ivr": 49.4,
-      "ivp": 56.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "OFSS",
       "iv": 20.1,
-      "ivr": 31.2,
-      "ivp": 44.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "360ONE",
       "iv": 20.3,
-      "ivr": 49.7,
-      "ivp": 51.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ADANIENT",
       "iv": 20.1,
-      "ivr": 29.9,
-      "ivp": 41.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "JSWSTEEL",
       "iv": 20.2,
-      "ivr": 65.6,
-      "ivp": 70.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LICI",
       "iv": 20.1,
-      "ivr": 35.6,
-      "ivp": 51.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "POLICYBZR",
       "iv": 20.3,
-      "ivr": 75.5,
-      "ivp": 86.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PREMIERENE",
       "iv": 20.1,
-      "ivr": 12.6,
-      "ivp": 19.2,
-      "hist_days": 120
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SAIL",
       "iv": 20.3,
-      "ivr": 81.8,
-      "ivp": 92.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SUZLON",
       "iv": 20.1,
-      "ivr": 15.3,
-      "ivp": 19.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "UPL",
       "iv": 20.1,
-      "ivr": 26.3,
-      "ivp": 45.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "VEDL",
       "iv": 20.2,
-      "ivr": 16.5,
-      "ivp": 56.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BRITANNIA",
       "iv": 20.0,
-      "ivr": 14.9,
-      "ivp": 11.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GRASIM",
       "iv": 20.0,
-      "ivr": 0.0,
+      "ivr": 50.0,
       "ivp": 0.0,
-      "hist_days": 169
+      "hist_days": 1
     },
     {
       "symbol": "HDFCLIFE",
       "iv": 20.1,
-      "ivr": 21.7,
-      "ivp": 26.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ICICIBANK",
       "iv": 20.2,
-      "ivr": 89.0,
-      "ivp": 91.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ICICIGI",
       "iv": 20.1,
-      "ivr": 15.1,
-      "ivp": 15.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "KFINTECH",
       "iv": 20.0,
-      "ivr": 2.2,
-      "ivp": 1.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MARUTI",
       "iv": 20.1,
-      "ivr": 27.7,
-      "ivp": 37.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MUTHOOTFIN",
       "iv": 20.1,
-      "ivr": 10.9,
-      "ivp": 7.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PFC",
       "iv": 20.1,
-      "ivr": 22.6,
-      "ivp": 41.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SUNPHARMA",
       "iv": 20.1,
-      "ivr": 22.1,
-      "ivp": 33.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SUPREMEIND",
       "iv": 20.1,
-      "ivr": 32.9,
-      "ivp": 36.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "UNOMINDA",
       "iv": 20.4,
-      "ivr": 77.5,
-      "ivp": 78.0,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ASIANPAINT",
       "iv": 20.1,
-      "ivr": 37.3,
-      "ivp": 43.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "INFY",
       "iv": 20.0,
-      "ivr": 4.3,
-      "ivp": 7.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SAMMAANCAP",
       "iv": 20.4,
-      "ivr": 71.6,
-      "ivp": 82.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "COFORGE",
       "iv": 20.2,
-      "ivr": 43.6,
-      "ivp": 57.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "GAIL",
       "iv": 20.2,
-      "ivr": 43.3,
-      "ivp": 79.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HAVELLS",
       "iv": 20.0,
-      "ivr": 8.5,
-      "ivp": 15.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HEROMOTOCO",
       "iv": 20.1,
-      "ivr": 23.2,
-      "ivp": 23.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MANKIND",
       "iv": 20.1,
-      "ivr": 21.5,
-      "ivp": 52.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MAZDOCK",
       "iv": 20.1,
-      "ivr": 15.2,
-      "ivp": 29.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MCX",
       "iv": 20.3,
-      "ivr": 51.3,
-      "ivp": 88.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NIFTY",
       "iv": 20.0,
-      "ivr": 62.9,
-      "ivp": 58.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NUVAMA",
       "iv": 20.2,
-      "ivr": 41.7,
-      "ivp": 49.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "PETRONET",
       "iv": 20.2,
-      "ivr": 58.5,
-      "ivp": 63.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "UNITDSPR",
       "iv": 20.0,
-      "ivr": 7.6,
-      "ivp": 9.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HDFCBANK",
       "iv": 20.2,
-      "ivr": 78.0,
-      "ivp": 89.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SIEMENS",
       "iv": 20.0,
-      "ivr": 0.3,
-      "ivp": 1.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "AMBER",
       "iv": 20.2,
-      "ivr": 47.0,
-      "ivp": 60.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BAJFINANCE",
       "iv": 20.3,
-      "ivr": 81.7,
-      "ivp": 91.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CANBK",
       "iv": 20.1,
-      "ivr": 63.2,
-      "ivp": 73.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "DMART",
       "iv": 20.3,
-      "ivr": 66.6,
-      "ivp": 74.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "FINNIFTY",
       "iv": 20.0,
-      "ivr": 17.7,
-      "ivp": 21.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HINDZINC",
       "iv": 20.4,
-      "ivr": 64.4,
-      "ivp": 90.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LICHSGFIN",
       "iv": 20.1,
-      "ivr": 36.3,
-      "ivp": 42.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LTM",
       "iv": 20.2,
-      "ivr": 52.1,
-      "ivp": 63.7,
-      "hist_days": 80
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "LUPIN",
       "iv": 20.0,
-      "ivr": 8.4,
-      "ivp": 6.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "RADICO",
       "iv": 20.1,
-      "ivr": 17.3,
-      "ivp": 13.0,
-      "hist_days": 23
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "RVNL",
       "iv": 20.2,
-      "ivr": 33.6,
-      "ivp": 38.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SHRIRAMFIN",
       "iv": 20.1,
-      "ivr": 30.2,
-      "ivp": 32.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TMPV",
       "iv": 20.4,
-      "ivr": 45.8,
-      "ivp": 80.1,
-      "hist_days": 166
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "IREDA",
       "iv": 20.1,
-      "ivr": 26.3,
-      "ivp": 45.2,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "ANGELONE",
       "iv": 20.1,
-      "ivr": 18.3,
-      "ivp": 21.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "AUBANK",
       "iv": 20.2,
-      "ivr": 50.8,
-      "ivp": 57.1,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "BANDHANBNK",
       "iv": 20.2,
-      "ivr": 46.2,
-      "ivp": 56.5,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "CAMS",
       "iv": 20.2,
-      "ivr": 54.7,
-      "ivp": 71.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HINDALCO",
       "iv": 20.2,
-      "ivr": 56.4,
-      "ivp": 61.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "HYUNDAI",
       "iv": 20.2,
-      "ivr": 54.7,
-      "ivp": 50.0,
-      "hist_days": 60
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "IRFC",
       "iv": 20.3,
-      "ivr": 96.0,
-      "ivp": 98.8,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "SBICARD",
       "iv": 20.3,
-      "ivr": 63.7,
-      "ivp": 72.6,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "TORNTPHARM",
       "iv": 20.3,
-      "ivr": 62.1,
-      "ivp": 80.4,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "VBL",
       "iv": 20.3,
-      "ivr": 83.6,
-      "ivp": 92.3,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "MIDCPNIFTY",
       "iv": 20.0,
-      "ivr": 9.8,
-      "ivp": 11.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "NAUKRI",
       "iv": 20.1,
-      "ivr": 19.6,
-      "ivp": 32.7,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "RECLTD",
       "iv": 20.2,
-      "ivr": 45.2,
-      "ivp": 67.9,
-      "hist_days": 169
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     },
     {
       "symbol": "WAAREEENER",
       "iv": 20.1,
-      "ivr": 11.0,
-      "ivp": 13.3,
-      "hist_days": 120
+      "ivr": 50.0,
+      "ivp": 0.0,
+      "hist_days": 1
     }
   ]
 }
