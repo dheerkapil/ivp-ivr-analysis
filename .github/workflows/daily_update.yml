@@ -2,8 +2,31 @@ name: Daily IVP/IVR Update
 
 on:
   schedule:
+    # Runs every 30 minutes from 18:30 IST to 23:30 IST, Monday–Friday
+    # IST = UTC+5:30, so:
+    # 18:30 IST = 13:00 UTC
+    # 19:00 IST = 13:30 UTC
+    # 19:30 IST = 14:00 UTC
+    # 20:00 IST = 14:30 UTC
+    # 20:30 IST = 15:00 UTC
+    # 21:00 IST = 15:30 UTC
+    # 21:30 IST = 16:00 UTC
+    # 22:00 IST = 16:30 UTC
+    # 22:30 IST = 17:00 UTC
+    # 23:00 IST = 17:30 UTC
+    # 23:30 IST = 18:00 UTC
     - cron: '00 13 * * 1-5'
-  workflow_dispatch:
+    - cron: '30 13 * * 1-5'
+    - cron: '00 14 * * 1-5'
+    - cron: '30 14 * * 1-5'
+    - cron: '00 15 * * 1-5'
+    - cron: '30 15 * * 1-5'
+    - cron: '00 16 * * 1-5'
+    - cron: '30 16 * * 1-5'
+    - cron: '00 17 * * 1-5'
+    - cron: '30 17 * * 1-5'
+    - cron: '00 18 * * 1-5'
+  workflow_dispatch:          # Manual trigger for testing
 
 permissions:
   contents: write
@@ -11,43 +34,37 @@ permissions:
 jobs:
   update-data:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-    
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Create directories
-      run: |
-        mkdir -p data
-        mkdir -p output
-    
-    - name: Run main analysis
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: |
-        python src/main.py
-    
-    - name: Commit and push results
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        if [ -f "output/daily_ivp_ivr.json" ]; then
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create data and output directories
+        run: |
+          mkdir -p data
+          mkdir -p output
+
+      - name: Run main analysis
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python src/main.py
+
+      - name: Commit and push results
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
           git add output/daily_ivp_ivr.json
           git commit -m "Daily update: $(date +'%Y-%m-%d')" || echo "No changes to commit"
           git push
-        else
-          echo "No output file to commit"
-        fi
