@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+import sqlite3
 import traceback
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -12,7 +13,7 @@ from src.downloader import download_fno_bhavcopy
 from src.database import (
     init_database, store_daily_iv, store_daily_metrics,
     get_historical_ivs, get_symbol_history_count, get_data_coverage,
-    trim_old_data
+    trim_old_data, DB_PATH
 )
 from src.metrics import calculate_ivr, calculate_ivp
 from src.telegram_bot import send_telegram_message, format_results
@@ -30,8 +31,22 @@ def main():
     print(f"Time: {datetime.now()}")
 
     config = load_config()
-
     init_database()
+
+    # ----------------------------
+    # SKIP if today's data already exists (prevents duplicate runs)
+    # ----------------------------
+    today = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM daily_iv WHERE date = ?", (today,))
+    count = cursor.fetchone()[0]
+    conn.close()
+    if count > 0:
+        print(f"✅ Data for {today} already exists. Skipping download.")
+        return
+
+    # Ensure output directory exists
     output_dir = get_project_root() / "output"
     output_dir.mkdir(exist_ok=True)
 
@@ -64,9 +79,7 @@ def main():
     symbols = options_data['SYMBOL'].unique()
     print(f"Found {len(symbols)} F&O symbols (stocks + indices)")
 
-    today = datetime.now().strftime("%Y-%m-%d")
     stock_metrics = []
-
     print("\nProcessing stocks...")
 
     for symbol in symbols:
@@ -167,7 +180,7 @@ def main():
     else:
         print("No metrics to send")
 
-    # --- Auto-trim to 253 days ---
+    # --- Auto‑trim to 253 days ---
     trim_old_data(253)
 
     print("\n=== Analysis Complete ===")
