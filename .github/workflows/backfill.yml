@@ -10,7 +10,7 @@ on:
         type: string
 
 permissions:
-  contents: write   # Required to push the database file
+  contents: write
 
 jobs:
   backfill:
@@ -40,6 +40,7 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
+          git pull --rebase origin main   # <-- ADD THIS LINE
           git add -f data/iv_history.db
           git commit -m "Backfill historical IV data (${{ github.event.inputs.days }} days)" || echo "No changes to commit"
           git push
