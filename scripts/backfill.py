@@ -21,7 +21,6 @@ def safe_float(value):
 
 def process_day_data(df, date):
     """Process a single day's DataFrame and store IVs"""
-    # Column mapping (same as main.py)
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
@@ -126,7 +125,6 @@ def backfill(days=365):
             data['date'] = date_str
             print(f"  ✅ Downloaded ({downloaded_days+1}/{days})")
             
-            # Process this day's data immediately
             processed = process_day_data(data, date_str)
             total_processed += processed
             downloaded_days += 1
@@ -145,7 +143,6 @@ def backfill(days=365):
         print("No data downloaded")
         return
 
-    # Auto‑trim to 253 days
     trim_old_data(253)
 
 if __name__ == "__main__":
