@@ -18,7 +18,7 @@ jobs:
         run: |
           python -c "import sqlite3; from datetime import datetime; conn = sqlite3.connect('data/iv_history.db'); cursor = conn.cursor(); today = datetime.now().strftime('%Y-%m-%d'); cursor.execute('DELETE FROM daily_metrics WHERE date = ?', (today,)); conn.commit(); deleted = cursor.rowcount; conn.close(); print(f'Deleted {deleted} rows for {today}')"
 
-      - name: Commit deletion (if any)
+      - name: Commit deletion
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
