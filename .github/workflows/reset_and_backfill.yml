@@ -1,0 +1,61 @@
+name: Reset and Backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of trading days to backfill (365 recommended)'
+        required: true
+        default: '365'
+
+permissions:
+  contents: write
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing database (if any)
+        run: |
+          rm -f data/iv_history.db
+          git add data/iv_history.db
+          git commit -m "Remove old database" || echo "No database to remove"
+          git push
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backfill (chunked, no memory errors)
+        run: python scripts/backfill.py --days ${{ github.event.inputs.days }}
+
+      - name: Verify day count
+        run: |
+          python -c "
+import sqlite3
+conn = sqlite3.connect('data/iv_history.db')
+count = conn.execute('SELECT COUNT(DISTINCT date) FROM daily_iv').fetchone()[0]
+print(f'✅ Days in database: {count}')
+if count < 253:
+    print('❌ ERROR: Less than 253 days. Backfill failed.')
+    exit(1)
+conn.close()
+"
+
+      - name: Commit and push new database
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git pull --rebase origin main
+          git add -f data/iv_history.db
+          git commit -m "Fresh backfill (${{ github.event.inputs.days }} days)" || echo "No changes"
+          git push
