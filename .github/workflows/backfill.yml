@@ -3,10 +3,10 @@ name: Backfill Historical Data
 on:
   workflow_dispatch:
     inputs:
-      days:
-        description: 'Number of recent trading days to backfill'
+      target:
+        description: 'Number of trading days to keep after trimming (default: 253)'
         required: true
-        default: '365'
+        default: '253'
         type: string
 
 permissions:
@@ -32,16 +32,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run backfill
-        run: python scripts/backfill.py --days ${{ github.event.inputs.days }}
+        run: python scripts/backfill.py --target ${{ github.event.inputs.target }}
 
       - name: Commit and push database
         run: |
           git config user.email "action@github.com"
-          git config user.name "GitHub Action"
-          # First add and commit the new database
+          git config.user.name "GitHub Action"
           git add -f data/iv_history.db
-          git commit -m "Backfill historical IV data (${{ github.event.inputs.days }} days)" || echo "No changes to commit"
-          # Then pull (with rebase) to integrate any remote changes
+          git commit -m "Backfill historical IV data (target: ${{ github.event.inputs.target }} days)" || echo "No changes to commit"
           git pull --rebase origin main
-          # Finally push
           git push
