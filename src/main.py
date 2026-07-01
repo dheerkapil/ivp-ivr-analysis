@@ -27,7 +27,6 @@ def safe_float(value):
         return 0.0
 
 def compute_and_store_metrics(date):
-    """Recompute metrics for a given date from daily_iv and store in daily_metrics."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT symbol, iv FROM daily_iv WHERE date = ?", (date,))
@@ -59,7 +58,6 @@ def compute_and_store_metrics(date):
     return stock_metrics
 
 def load_metrics_for_date(date):
-    """Load metrics from daily_metrics table (for backward compatibility)."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -83,85 +81,6 @@ def load_metrics_for_date(date):
         })
     return stock_metrics
 
-def main():
-    print("=== NSE IVP/IVR Analysis Started ===")
-    print(f"Time: {datetime.now()}")
-
-    config = load_config()
-    init_database()
-
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    # 1. Check if we have IV data for today
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM daily_iv WHERE date = ?", (today,))
-    count_today_iv = cursor.fetchone()[0]
-    conn.close()
-
-    if count_today_iv > 0:
-        # We have today's IV data – recompute metrics for today (overwrites any old cache)
-        print(f"✅ Today's IV data found – recomputing metrics for {today}.")
-        stock_metrics = compute_and_store_metrics(today)
-        # Send report
-        coverage = get_data_coverage()
-        total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
-        print("\nSending Telegram notification...")
-        messages = format_results(stock_metrics, today, total_days, oldest, newest)
-        for idx, msg in enumerate(messages):
-            print(f"Sending part {idx+1}/{len(messages)}")
-            send_telegram_message(msg)
-        trim_old_data(253)
-        print("=== Analysis Complete (metrics recomputed) ===")
-        return
-
-    # 2. If no today's IV, try to download today's bhavcopy
-    print("No today's IV found. Attempting to download bhavcopy...")
-    bhavcopy = download_fno_bhavcopy()
-    if bhavcopy is not None:
-        # Process the downloaded data (this stores IV and metrics)
-        process_bhavcopy(bhavcopy)
-        # After processing, recompute metrics (they are already stored, but we can send report)
-        stock_metrics = load_metrics_for_date(today)
-        if not stock_metrics:
-            # Fallback: recompute from IV
-            stock_metrics = compute_and_store_metrics(today)
-        coverage = get_data_coverage()
-        total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
-        print("\nSending Telegram notification...")
-        messages = format_results(stock_metrics, today, total_days, oldest, newest)
-        for idx, msg in enumerate(messages):
-            print(f"Sending part {idx+1}/{len(messages)}")
-            send_telegram_message(msg)
-        trim_old_data(253)
-        print("=== Analysis Complete (fresh download) ===")
-        return
-
-    # 3. No today's data at all – send latest available from cache
-    latest_date = get_latest_data_date('daily_iv')
-    if latest_date:
-        print(f"⚠️ No data for today. Sending latest available report from {latest_date}")
-        stock_metrics = load_metrics_for_date(latest_date)
-        if not stock_metrics:
-            stock_metrics = compute_and_store_metrics(latest_date)
-        coverage = get_data_coverage()
-        total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
-        messages = format_results(stock_metrics, latest_date, total_days, oldest, newest)
-        for idx, msg in enumerate(messages):
-            print(f"Sending part {idx+1}/{len(messages)}")
-            send_telegram_message(msg)
-        print("=== Analysis Complete (cached) ===")
-        return
-
-    # 4. No data at all – send a notification
-    print("No data found in database. Sending notification.")
-    msg = ("📊 *NSE IVP/IVR Report*\n\n"
-           "No historical data available yet. Please run the "
-           "**Backfill Historical Data** workflow from the Actions tab "
-           "to build the database. After that, the daily report will appear here.")
-    send_telegram_message(msg)
-    print("=== Analysis Complete ===")
-
 def get_latest_data_date(table='daily_iv'):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -171,7 +90,6 @@ def get_latest_data_date(table='daily_iv'):
     return row[0] if row and row[0] else None
 
 def process_bhavcopy(bhavcopy):
-    """Process downloaded bhavcopy and store IVs and metrics."""
     today = datetime.now().strftime("%Y-%m-%d")
     column_mapping = {
         'TckrSymb': 'SYMBOL',
@@ -235,7 +153,6 @@ def process_bhavcopy(bhavcopy):
             expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
 
             store_daily_iv(today, symbol, current_iv, spot, expiry, atm_strike, 'CE')
-            # Compute and store metrics immediately (though the main loop will recompute if needed)
             hist_data = get_historical_ivs(symbol, days=252)
             if len(hist_data) > 0:
                 historical_ivs = hist_data['iv'].tolist()
@@ -248,6 +165,80 @@ def process_bhavcopy(bhavcopy):
             print(f"Error with {symbol}: {e}")
             traceback.print_exc()
             continue
+
+def main():
+    print("=== NSE IVP/IVR Analysis Started ===")
+    print(f"Time: {datetime.now()}")
+
+    config = load_config()
+    init_database()
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # Check if we have IV data for today
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM daily_iv WHERE date = ?", (today,))
+    count_today_iv = cursor.fetchone()[0]
+    conn.close()
+
+    if count_today_iv > 0:
+        # Recompute today's metrics from the current IV data (overwrites any old cache)
+        print(f"✅ Today's IV data found – recomputing metrics for {today}.")
+        stock_metrics = compute_and_store_metrics(today)
+        coverage = get_data_coverage()
+        total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
+        print("\nSending Telegram notification...")
+        messages = format_results(stock_metrics, today, total_days, oldest, newest)
+        for idx, msg in enumerate(messages):
+            print(f"Sending part {idx+1}/{len(messages)}")
+            send_telegram_message(msg)
+        trim_old_data(253)
+        print("=== Analysis Complete (metrics recomputed) ===")
+        return
+
+    # If no today's IV, try to download
+    print("No today's IV found. Attempting to download bhavcopy...")
+    bhavcopy = download_fno_bhavcopy()
+    if bhavcopy is not None:
+        process_bhavcopy(bhavcopy)
+        stock_metrics = load_metrics_for_date(today)
+        if not stock_metrics:
+            stock_metrics = compute_and_store_metrics(today)
+        coverage = get_data_coverage()
+        total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
+        print("\nSending Telegram notification...")
+        messages = format_results(stock_metrics, today, total_days, oldest, newest)
+        for idx, msg in enumerate(messages):
+            print(f"Sending part {idx+1}/{len(messages)}")
+            send_telegram_message(msg)
+        trim_old_data(253)
+        print("=== Analysis Complete (fresh download) ===")
+        return
+
+    # Fallback: latest available from cache
+    latest_date = get_latest_data_date('daily_iv')
+    if latest_date:
+        print(f"⚠️ No data for today. Sending latest available report from {latest_date}")
+        stock_metrics = load_metrics_for_date(latest_date)
+        if not stock_metrics:
+            stock_metrics = compute_and_store_metrics(latest_date)
+        coverage = get_data_coverage()
+        total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
+        messages = format_results(stock_metrics, latest_date, total_days, oldest, newest)
+        for idx, msg in enumerate(messages):
+            print(f"Sending part {idx+1}/{len(messages)}")
+            send_telegram_message(msg)
+        print("=== Analysis Complete (cached) ===")
+        return
+
+    # No data at all
+    msg = ("📊 *NSE IVP/IVR Report*\n\n"
+           "No historical data available yet. Please run the "
+           "**Backfill Historical Data** workflow from the Actions tab "
+           "to build the database. After that, the daily report will appear here.")
+    send_telegram_message(msg)
+    print("=== Analysis Complete ===")
 
 if __name__ == "__main__":
     main()
