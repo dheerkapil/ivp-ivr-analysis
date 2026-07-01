@@ -1,88 +1,181 @@
-Downloaded (360/365)
-  Found 228 symbols with options
-    Processed 100 records...
-    Processed 200 records...
-  Stored 228 records for 2025-01-10
+import sys
+import traceback
+import argparse
+from pathlib import Path
+from datetime import datetime, timedelta
+import time
+import pandas as pd
+import sqlite3
 
-Attempting: 2025-01-09
-Downloading F&O bhavcopy from: https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20250109_F_0000.csv.zip
-Successfully downloaded 36338 rows of F&O data
-  ✅ Downloaded (361/365)
-  Found 228 symbols with options
-    Processed 100 records...
-    Processed 200 records...
-  Stored 228 records for 2025-01-09
+sys.path.append(str(Path(__file__).parent.parent))
 
-Attempting: 2025-01-08
-Downloading F&O bhavcopy from: https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20250108_F_0000.csv.zip
-Successfully downloaded 35880 rows of F&O data
-  ✅ Downloaded (362/365)
-  Found 228 symbols with options
-    Processed 100 records...
-    Processed 200 records...
-  Stored 228 records for 2025-01-08
+from src.downloader import download_fno_bhavcopy
+from src.database import init_database, store_daily_iv, trim_old_data, DB_PATH
 
-Attempting: 2025-01-07
-Downloading F&O bhavcopy from: https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20250107_F_0000.csv.zip
-Successfully downloaded 35630 rows of F&O data
-  ✅ Downloaded (363/365)
-  Found 228 symbols with options
-    Processed 100 records...
-    Processed 200 records...
-  Stored 228 records for 2025-01-07
+def safe_float(value):
+    if value is None:
+        return 0.0
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return 0.0
 
-Attempting: 2025-01-06
-Downloading F&O bhavcopy from: https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20250106_F_0000.csv.zip
-Successfully downloaded 34756 rows of F&O data
-  ✅ Downloaded (364/365)
-  Found 228 symbols with options
-    Processed 100 records...
-    Processed 200 records...
-  Stored 228 records for 2025-01-06
+def get_existing_dates():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT date FROM daily_iv")
+    rows = cursor.fetchall()
+    conn.close()
+    return {row[0] for row in rows}
 
-Attempting: 2025-01-03
-Downloading F&O bhavcopy from: https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_20250103_F_0000.csv.zip
-Successfully downloaded 34069 rows of F&O data
-  ✅ Downloaded (365/365)
-  Found 228 symbols with options
-    Processed 100 records...
-    Processed 200 records...
-  Stored 228 records for 2025-01-03
+def process_day_data(df, date):
+    column_mapping = {
+        'TckrSymb': 'SYMBOL',
+        'ClsPric': 'CLOSE',
+        'StrkPric': 'STRIKE_PR',
+        'OptnTp': 'OPTION_TYP',
+        'XpryDt': 'EXPIRY_DT',
+        'UndrlygPric': 'UNDERLYING_PRICE'
+    }
+    rename_dict = {old: new for old, new in column_mapping.items() if old in df.columns}
+    if rename_dict:
+        df = df.rename(columns=rename_dict)
 
-Downloaded 365 trading days
-Total records stored: 79852
-Trimmed 43716 IV records and 0 metrics records older than 2025-10-20
-3s
-Run git config user.email "action@github.com"
-From https://github.com/dheerkapil/ivp-ivr-analysis
- * branch            main       -> FETCH_HEAD
-Already up to date.
-[main 473afd9] Backfill historical IV data (365 days)
- 1 file changed, 0 insertions(+), 0 deletions(-)
- create mode 100644 data/iv_history.db
-To https://github.com/dheerkapil/ivp-ivr-analysis
-   27aaea4..473afd9  main -> main
-0s
-Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-Post job cleanup.
-(node:2743) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-0s
-Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-Post job cleanup.
-/usr/bin/git version
-git version 2.54.0
-Temporarily overriding HOME='/home/runner/work/_temp/62a65f3a-afcb-48f8-9f3f-3141ed5570f9' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-/usr/bin/git config --global --add safe.directory /home/runner/work/ivp-ivr-analysis/ivp-ivr-analysis
-/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-0s
-Cleaning up orphan processes
-Warning: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+    required_cols = ['SYMBOL', 'CLOSE', 'STRIKE_PR', 'OPTION_TYP']
+    for col in required_cols:
+        if col not in df.columns:
+            print(f"  Missing column '{col}' – skipping day")
+            return 0
+
+    options = df[df['OPTION_TYP'].isin(['CE', 'PE'])]
+    symbols = options['SYMBOL'].unique()
+    print(f"  Found {len(symbols)} symbols with options")
+
+    processed = 0
+    for symbol in symbols:
+        try:
+            stock_data = df[df['SYMBOL'] == symbol]
+            if len(stock_data) == 0:
+                continue
+
+            spot = 0.0
+            if 'UNDERLYING_PRICE' in stock_data.columns:
+                spot = safe_float(stock_data['UNDERLYING_PRICE'].iloc[0])
+            if spot <= 0:
+                futures = stock_data[stock_data['OPTION_TYP'] == 'XX']
+                if len(futures) > 0:
+                    spot = safe_float(futures['CLOSE'].iloc[0])
+            if spot <= 0:
+                spot = safe_float(stock_data['CLOSE'].iloc[0])
+            if spot <= 0:
+                continue
+
+            opts = stock_data[stock_data['OPTION_TYP'].isin(['CE', 'PE'])]
+            if len(opts) == 0:
+                continue
+            strikes = opts['STRIKE_PR'].unique()
+            if len(strikes) == 0:
+                continue
+            strike_floats = [safe_float(s) for s in strikes]
+            atm_strike = min(strike_floats, key=lambda x: abs(x - spot))
+
+            call = opts[(opts['STRIKE_PR'] == atm_strike) & (opts['OPTION_TYP'] == 'CE')]
+            if len(call) == 0:
+                call = opts[(opts['STRIKE_PR'] == atm_strike) & (opts['OPTION_TYP'] == 'PE')]
+                if len(call) == 0:
+                    continue
+
+            opt_price = safe_float(call['CLOSE'].iloc[0])
+            if opt_price > 0 and spot > 0:
+                moneyness = abs(spot - atm_strike) / spot
+                current_iv = 20 + (moneyness * 60)
+                current_iv = max(10, min(80, current_iv))
+            else:
+                current_iv = 25.0
+
+            expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
+
+            store_daily_iv(date, symbol, current_iv, spot, expiry, atm_strike, 'CE')
+            processed += 1
+            if processed % 100 == 0:
+                print(f"    Processed {processed} records...")
+
+        except Exception as e:
+            print(f"    Error with {symbol}: {e}")
+            traceback.print_exc()
+            continue
+
+    return processed
+
+def backfill(target_days=365):
+    print(f"Starting backfill – target: {target_days} total trading days.")
+    init_database()
+
+    existing_dates = get_existing_dates()
+    existing_count = len(existing_dates)
+    print(f"Currently have {existing_count} distinct trading days.")
+
+    if existing_count >= target_days:
+        print(f"Already have {existing_count} days – no additional days needed.")
+        trim_old_data(253)
+        return
+
+    needed = target_days - existing_count
+    print(f"Need to add {needed} new trading days.")
+
+    end_date = datetime.now()
+    current = end_date
+    added = 0
+    total_processed = 0
+
+    min_date = datetime(2024, 1, 1)
+
+    while added < needed and current >= min_date:
+        if current.weekday() >= 5:
+            current -= timedelta(days=1)
+            continue
+
+        date_str = current.strftime('%Y-%m-%d')
+
+        if date_str in existing_dates:
+            current -= timedelta(days=1)
+            continue
+
+        print(f"\nAttempting new date: {date_str}")
+        data = download_fno_bhavcopy(current)
+
+        if data is not None and not data.empty:
+            data['date'] = date_str
+            print(f"  ✅ Downloaded ({added+1}/{needed})")
+
+            processed = process_day_data(data, date_str)
+            total_processed += processed
+            added += 1
+            existing_dates.add(date_str)
+            print(f"  Stored {processed} records for {date_str}")
+        else:
+            print(f"  ❌ No data for {date_str}")
+
+        current -= timedelta(days=1)
+        time.sleep(1)
+
+    if added == 0:
+        print("No new data added.")
+    else:
+        print(f"\nAdded {added} new trading days.")
+        print(f"Total records added: {total_processed}")
+
+    final_count = len(get_existing_dates())
+    print(f"Database now has {final_count} distinct trading days.")
+
+    if final_count < target_days:
+        print(f"⚠️ Only {final_count} days available (reached 2024-01-01).")
+
+    trim_old_data(253)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Backfill historical IV data")
+    parser.add_argument('--days', type=int, default=365,
+                        help='Target total number of trading days (default: 365)')
+    args = parser.parse_args()
+    backfill(target_days=args.days)
