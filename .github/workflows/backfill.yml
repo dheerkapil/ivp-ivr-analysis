@@ -6,7 +6,7 @@ on:
       target:
         description: 'Number of trading days to keep after trimming (default: 253)'
         required: true
-        default: '253'
+        default: '2'
         type: string
 
 permissions:
@@ -37,7 +37,7 @@ jobs:
       - name: Commit and push database
         run: |
           git config user.email "action@github.com"
-          git config.user.name "GitHub Action"
+          git config user.name "GitHub Action"
           git add -f data/iv_history.db
           git commit -m "Backfill historical IV data (target: ${{ github.event.inputs.target }} days)" || echo "No changes to commit"
           git pull --rebase origin main
