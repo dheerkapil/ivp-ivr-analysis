@@ -21,6 +21,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Remove old database (clean start)
+        run: |
+          rm -f data/iv_history.db
+          git add data/iv_history.db
+          git commit -m "Remove old database for fresh backfill" || echo "No old database to remove"
+          git push || echo "Nothing to push"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,11 +41,15 @@ jobs:
       - name: Run backfill
         run: python scripts/backfill.py --target ${{ github.event.inputs.target }}
 
-      - name: Commit and push database
+      - name: Verify database has at least target days
+        run: |
+          python -c "import sqlite3; conn = sqlite3.connect('data/iv_history.db'); count = conn.execute('SELECT COUNT(DISTINCT date) FROM daily_iv').fetchone()[0]; target = int('${{ github.event.inputs.target }}'); print(f'Days in database: {count}'); assert count >= target, f'Expected {target}, got {count}'; conn.close()"
+
+      - name: Commit and push new database
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add -f data/iv_history.db
-          git commit -m "Backfill historical IV data (target: ${{ github.event.inputs.target }} days)" || echo "No changes to commit"
+          git commit -m "Backfill historical IV data (target: ${{ github.event.inputs.target }} days)" || echo "No changes"
           git pull --rebase origin main
           git push
