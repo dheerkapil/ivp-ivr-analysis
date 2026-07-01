@@ -13,18 +13,7 @@ jobs:
 
       - name: Delete today's metrics
         run: |
-          python -c "
-import sqlite3
-from datetime import datetime
-conn = sqlite3.connect('data/iv_history.db')
-cursor = conn.cursor()
-today = datetime.now().strftime('%Y-%m-%d')
-cursor.execute('DELETE FROM daily_metrics WHERE date = ?', (today,))
-conn.commit()
-deleted = cursor.rowcount
-conn.close()
-print(f'Deleted {deleted} rows for {today}')
-"
+          python -c "import sqlite3; from datetime import datetime; conn = sqlite3.connect('data/iv_history.db'); cursor = conn.cursor(); today = datetime.now().strftime('%Y-%m-%d'); cursor.execute('DELETE FROM daily_metrics WHERE date = ?', (today,)); conn.commit(); deleted = cursor.rowcount; conn.close(); print(f'Deleted {deleted} rows for {today}')"
 
       - name: Commit deletion
         run: |
