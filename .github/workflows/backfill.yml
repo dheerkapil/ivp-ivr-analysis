@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       days:
-        description: 'Number of recent trading days to backfill (e.g., 365)'
+        description: 'Number of recent trading days to backfill'
         required: true
         default: '365'
         type: string
@@ -15,32 +15,24 @@ permissions:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-
       - name: Run backfill
-        run: |
-          python scripts/backfill.py --days ${{ github.event.inputs.days }}
-
+        run: python scripts/backfill.py --days ${{ github.event.inputs.days }}
       - name: Commit and push database
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git pull --rebase origin main   # <-- ADD THIS LINE
+          git pull --rebase origin main
           git add -f data/iv_history.db
-          git commit -m "Backfill historical IV data (${{ github.event.inputs.days }} days)" || echo "No changes to commit"
+          git commit -m "Backfill historical IV data (${{ github.event.inputs.days }} days)" || echo "No changes"
           git push
