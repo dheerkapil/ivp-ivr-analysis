@@ -1,0 +1,32 @@
+name: Clear Today's Metrics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  clear:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete today's metrics
+        run: |
+          python -c "
+import sqlite3
+conn = sqlite3.connect('data/iv_history.db')
+cursor = conn.cursor()
+today = '2026-06-30'   # <-- change to today's date if different
+cursor.execute('DELETE FROM daily_metrics WHERE date = ?', (today,))
+conn.commit()
+deleted = cursor.rowcount
+conn.close()
+print(f'Deleted {deleted} rows for {today}')
+"
+      - name: Commit deletion
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add data/iv_history.db
+          git commit -m "Clear cached metrics for today" || echo "No changes"
+          git push
