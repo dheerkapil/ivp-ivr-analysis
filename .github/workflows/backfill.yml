@@ -6,7 +6,7 @@ on:
       target:
         description: 'Number of trading days to keep after trimming (default: 253)'
         required: true
-        default: '2'
+        default: '253'
         type: string
 
 permissions:
