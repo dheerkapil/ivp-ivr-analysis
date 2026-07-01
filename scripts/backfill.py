@@ -10,7 +10,7 @@ import sqlite3
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.downloader import download_fno_bhavcopy
-from src.database import init_database, store_daily_iv, trim_old_data, DB_PATH
+from src.database import init_database, store_daily_iv, DB_PATH
 
 def safe_float(value):
     if value is None:
@@ -107,33 +107,20 @@ def process_day_data(df, date):
 
     return processed
 
-def count_trimmed_days(target=253):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT DISTINCT date FROM daily_iv ORDER BY date DESC")
-    rows = cursor.fetchall()
-    conn.close()
-    all_dates = [row[0] for row in rows]
-    if len(all_dates) <= target:
-        return len(all_dates)
-    return target
-
-def backfill(target_keep=253):
-    print(f"Starting backfill – target: keep {target_keep} trading days after trimming.")
+def backfill(target_days=500):
+    print(f"Starting backfill – target: collect {target_days} total trading days (no trimming).")
     init_database()
 
     existing_dates = get_existing_dates()
     existing_count = len(existing_dates)
     print(f"Currently have {existing_count} distinct trading days.")
 
-    trimmed_count = count_trimmed_days(target_keep)
-    if trimmed_count >= target_keep:
-        print(f"Already have {trimmed_count} days after trimming – target reached.")
-        trim_old_data(target_keep)
+    if existing_count >= target_days:
+        print(f"Already have {existing_count} days – no additional days needed.")
         return
 
-    needed = target_keep - trimmed_count
-    print(f"Need to add {needed} more days to reach {target_keep} after trim.")
+    needed = target_days - existing_count
+    print(f"Need to add {needed} new trading days.")
 
     end_date = datetime.now()
     current = end_date
@@ -142,7 +129,7 @@ def backfill(target_keep=253):
 
     min_date = datetime(2024, 1, 1)
 
-    while trimmed_count < target_keep and current >= min_date:
+    while added < needed and current >= min_date:
         if current.weekday() >= 5:
             current -= timedelta(days=1)
             continue
@@ -158,16 +145,13 @@ def backfill(target_keep=253):
 
         if data is not None and not data.empty:
             data['date'] = date_str
-            print(f"  ✅ Downloaded ({added+1})")
+            print(f"  ✅ Downloaded ({added+1}/{needed})")
 
             processed = process_day_data(data, date_str)
             total_processed += processed
             added += 1
             existing_dates.add(date_str)
             print(f"  Stored {processed} records for {date_str}")
-
-            trimmed_count = count_trimmed_days(target_keep)
-            print(f"  Now {trimmed_count} days would remain after trim (target: {target_keep})")
         else:
             print(f"  ❌ No data for {date_str}")
 
@@ -183,17 +167,14 @@ def backfill(target_keep=253):
     final_count = len(get_existing_dates())
     print(f"Database now has {final_count} distinct trading days total.")
 
-    trimmed_final = count_trimmed_days(target_keep)
-    print(f"After trimming to {target_keep} days, you will have {trimmed_final} days.")
+    if final_count < target_days:
+        print(f"⚠️ Only {final_count} days available (reached 2024-01-01).")
 
-    if trimmed_final < target_keep:
-        print(f"⚠️ Only {trimmed_final} days available – reached 2024-01-01.")
-
-    trim_old_data(target_keep)
+    # No trim – all data kept
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Backfill historical IV data")
-    parser.add_argument('--target', type=int, default=253,
-                        help='Number of trading days to keep after trimming (default: 253)')
+    parser = argparse.ArgumentParser(description="Backfill historical IV data without trimming")
+    parser.add_argument('--target', type=int, default=500,
+                        help='Number of trading days to collect (default: 500)')
     args = parser.parse_args()
-    backfill(target_keep=args.target)
+    backfill(target_days=args.target)
