@@ -108,17 +108,14 @@ def process_day_data(df, date):
     return processed
 
 def count_trimmed_days(target=253):
-    """Return number of distinct dates that would remain after trimming to target days."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    # Get all distinct dates sorted descending
     cursor.execute("SELECT DISTINCT date FROM daily_iv ORDER BY date DESC")
     rows = cursor.fetchall()
     conn.close()
     all_dates = [row[0] for row in rows]
     if len(all_dates) <= target:
         return len(all_dates)
-    # The trim keeps the most recent `target` dates
     return target
 
 def backfill(target_keep=253):
@@ -129,10 +126,10 @@ def backfill(target_keep=253):
     existing_count = len(existing_dates)
     print(f"Currently have {existing_count} distinct trading days.")
 
-    # Check how many would remain after trim
     trimmed_count = count_trimmed_days(target_keep)
     if trimmed_count >= target_keep:
         print(f"Already have {trimmed_count} days after trimming – target reached.")
+        trim_old_data(target_keep)
         return
 
     needed = target_keep - trimmed_count
@@ -169,7 +166,6 @@ def backfill(target_keep=253):
             existing_dates.add(date_str)
             print(f"  Stored {processed} records for {date_str}")
 
-            # Recalculate trimmed count after this addition
             trimmed_count = count_trimmed_days(target_keep)
             print(f"  Now {trimmed_count} days would remain after trim (target: {target_keep})")
         else:
@@ -193,7 +189,6 @@ def backfill(target_keep=253):
     if trimmed_final < target_keep:
         print(f"⚠️ Only {trimmed_final} days available – reached 2024-01-01.")
 
-    # Perform the actual trim
     trim_old_data(target_keep)
 
 if __name__ == "__main__":
