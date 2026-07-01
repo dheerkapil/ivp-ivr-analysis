@@ -20,7 +20,6 @@ def safe_float(value):
         return 0.0
 
 def process_day_data(df, date):
-    """Process a single day's DataFrame and store IVs"""
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
