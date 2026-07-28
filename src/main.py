@@ -16,6 +16,7 @@ from src.database import (
     trim_old_data, DB_PATH
 )
 from src.metrics import calculate_ivr, calculate_ivp
+from src.iv_calculator import calculate_iv   # <-- new import
 from src.telegram_bot import send_telegram_message, format_results
 
 def safe_float(value):
@@ -109,12 +110,17 @@ def process_bhavcopy(bhavcopy):
         return
 
     symbols = options_data['SYMBOL'].unique()
+    # We need to compute expiry in years for IV calculation
+    today_dt = datetime.now()
+    risk_free_rate = 0.05  # 5% - you can adjust
+
     for symbol in symbols:
         try:
             stock_data = bhavcopy[bhavcopy['SYMBOL'] == symbol]
             if len(stock_data) == 0:
                 continue
 
+            # Spot price
             spot = 0.0
             if 'UNDERLYING_PRICE' in stock_data.columns:
                 spot = safe_float(stock_data['UNDERLYING_PRICE'].iloc[0])
@@ -127,32 +133,61 @@ def process_bhavcopy(bhavcopy):
             if spot <= 0:
                 continue
 
+            # Options for this symbol
             options = stock_data[stock_data['OPTION_TYP'].isin(['CE', 'PE'])]
             if len(options) == 0:
                 continue
+
+            # ATM strike
             strikes = options['STRIKE_PR'].unique()
             if len(strikes) == 0:
                 continue
             strike_floats = [safe_float(s) for s in strikes]
             atm_strike = min(strike_floats, key=lambda x: abs(x - spot))
 
+            # Get call option at ATM strike (prefer CE, else PE)
             call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'CE')]
             if len(call) == 0:
                 call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'PE')]
                 if len(call) == 0:
                     continue
 
+            # Option price
             opt_price = safe_float(call['CLOSE'].iloc[0])
-            if opt_price > 0 and spot > 0:
+            # Expiry date
+            expiry_str = call['EXPIRY_DT'].iloc[0] if 'EXPIRY_DT' in call.columns else None
+            if expiry_str:
+                try:
+                    expiry_dt = datetime.strptime(expiry_str, "%d-%b-%Y")
+                except:
+                    expiry_dt = datetime.strptime(expiry_str, "%Y-%m-%d")
+                time_to_expiry = (expiry_dt - today_dt).days / 365.0
+                time_to_expiry = max(time_to_expiry, 0.001)  # avoid zero
+            else:
+                time_to_expiry = 0.05  # ~18 days as fallback
+
+            # Option type
+            option_type = call['OPTION_TYP'].iloc[0]  # 'CE' or 'PE'
+
+            # ---- Calculate true IV ----
+            if opt_price > 0 and spot > 0 and atm_strike > 0 and time_to_expiry > 0:
+                try:
+                    current_iv = calculate_iv(opt_price, spot, atm_strike, time_to_expiry, risk_free_rate, option_type)
+                    current_iv = max(5, min(150, current_iv))  # clamp to reasonable range
+                except Exception as e:
+                    print(f"IV calc failed for {symbol}: {e}, using placeholder")
+                    # fallback to placeholder
+                    moneyness = abs(spot - atm_strike) / spot
+                    current_iv = 20 + (moneyness * 60)
+            else:
+                # If price or spot is invalid, use placeholder
                 moneyness = abs(spot - atm_strike) / spot
                 current_iv = 20 + (moneyness * 60)
-                current_iv = max(10, min(80, current_iv))
-            else:
-                current_iv = 25.0
 
+            # Store IV and metrics
             expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
+            store_daily_iv(today, symbol, current_iv, spot, expiry, atm_strike, option_type)
 
-            store_daily_iv(today, symbol, current_iv, spot, expiry, atm_strike, 'CE')
             hist_data = get_historical_ivs(symbol, days=252)
             if len(hist_data) > 0:
                 historical_ivs = hist_data['iv'].tolist()
