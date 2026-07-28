@@ -90,8 +90,8 @@ def get_latest_data_date(table='daily_iv'):
     conn.close()
     return row[0] if row and row[0] else None
 
-def process_bhavcopy(bhavcopy):
-    today = datetime.now().strftime("%Y-%m-%d")
+def process_bhavcopy(bhavcopy, date_str):
+    """Process a bhavcopy for a specific date (date_str in YYYY-MM-DD)"""
     column_mapping = {
         'TckrSymb': 'SYMBOL',
         'ClsPric': 'CLOSE',
@@ -110,7 +110,7 @@ def process_bhavcopy(bhavcopy):
         return
 
     symbols = options_data['SYMBOL'].unique()
-    today_dt = datetime.now()
+    today_dt = datetime.strptime(date_str, "%Y-%m-%d")
     risk_free_rate = 0.05
 
     for symbol in symbols:
@@ -161,7 +161,6 @@ def process_bhavcopy(bhavcopy):
 
             option_type = call['OPTION_TYP'].iloc[0]
 
-            # ---- Calculate true IV ----
             if opt_price > 0 and spot > 0 and atm_strike > 0 and time_to_expiry > 0:
                 try:
                     current_iv = calculate_iv(opt_price, spot, atm_strike, time_to_expiry, risk_free_rate, option_type)
@@ -177,16 +176,16 @@ def process_bhavcopy(bhavcopy):
                 print(f"  {symbol}: Using placeholder (opt_price={opt_price}, spot={spot}, atm={atm_strike})")
 
             expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
-            store_daily_iv(today, symbol, current_iv, spot, expiry, atm_strike, option_type)
+            store_daily_iv(date_str, symbol, current_iv, spot, expiry, atm_strike, option_type)
 
             hist_data = get_historical_ivs(symbol, days=252)
             if len(hist_data) > 0:
                 historical_ivs = hist_data['iv'].tolist()
                 ivr = calculate_ivr(current_iv, historical_ivs)
                 ivp = calculate_ivp(current_iv, historical_ivs)
-                store_daily_metrics(today, symbol, ivr, ivp, current_iv)
+                store_daily_metrics(date_str, symbol, ivr, ivp, current_iv)
             else:
-                store_daily_metrics(today, symbol, 50.0, 50.0, current_iv)
+                store_daily_metrics(date_str, symbol, 50.0, 50.0, current_iv)
         except Exception as e:
             print(f"Error with {symbol}: {e}")
             traceback.print_exc()
@@ -201,6 +200,7 @@ def main():
 
     today = datetime.now().strftime("%Y-%m-%d")
 
+    # Check if we have IV data for today
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM daily_iv WHERE date = ?", (today,))
@@ -221,27 +221,48 @@ def main():
         print("=== Analysis Complete (metrics recomputed) ===")
         return
 
+    # If no today's IV, try to download today's bhavcopy; if fails, fallback to previous days
     print("No today's IV found. Attempting to download bhavcopy...")
-    bhavcopy = download_fno_bhavcopy()
-    if bhavcopy is not None:
-        process_bhavcopy(bhavcopy)
-        stock_metrics = load_metrics_for_date(today)
+
+    # Try to download starting from today, going backwards up to 10 days
+    max_days_back = 10
+    bhavcopy = None
+    date_used = None
+    for offset in range(max_days_back + 1):
+        candidate_date = datetime.now() - timedelta(days=offset)
+        if candidate_date.weekday() >= 5:  # skip weekends
+            continue
+        candidate_date_str = candidate_date.strftime("%Y-%m-%d")
+        print(f"Attempting to download bhavcopy for {candidate_date_str}...")
+        bhavcopy = download_fno_bhavcopy(candidate_date)
+        if bhavcopy is not None:
+            date_used = candidate_date_str
+            print(f"✅ Downloaded bhavcopy for {date_used}")
+            break
+        else:
+            print(f"❌ No bhavcopy for {candidate_date_str}")
+
+    if bhavcopy is not None and date_used is not None:
+        # Process the downloaded bhavcopy for the found date
+        process_bhavcopy(bhavcopy, date_used)
+        stock_metrics = load_metrics_for_date(date_used)
         if not stock_metrics:
-            stock_metrics = compute_and_store_metrics(today)
+            stock_metrics = compute_and_store_metrics(date_used)
         coverage = get_data_coverage()
         total_days, oldest, newest = coverage if coverage and coverage[0] else (0, None, None)
         print("\nSending Telegram notification...")
-        messages = format_results(stock_metrics, today, total_days, oldest, newest)
+        messages = format_results(stock_metrics, date_used, total_days, oldest, newest)
         for idx, msg in enumerate(messages):
             print(f"Sending part {idx+1}/{len(messages)}")
             send_telegram_message(msg)
         trim_old_data(253)
-        print("=== Analysis Complete (fresh download) ===")
+        print(f"=== Analysis Complete (fresh download from {date_used}) ===")
         return
 
+    # If no bhavcopy found at all, fallback to latest cached
+    print("No bhavcopy found for recent days. Sending latest cached report.")
     latest_date = get_latest_data_date('daily_iv')
     if latest_date:
-        print(f"⚠️ No data for today. Sending latest available report from {latest_date}")
         stock_metrics = load_metrics_for_date(latest_date)
         if not stock_metrics:
             stock_metrics = compute_and_store_metrics(latest_date)
@@ -254,6 +275,7 @@ def main():
         print("=== Analysis Complete (cached) ===")
         return
 
+    # No data at all
     msg = ("📊 *NSE IVP/IVR Report*\n\n"
            "No historical data available yet. Please run the "
            "**Backfill Historical Data** workflow from the Actions tab "
