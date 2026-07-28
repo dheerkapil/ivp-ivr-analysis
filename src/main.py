@@ -16,7 +16,7 @@ from src.database import (
     trim_old_data, DB_PATH
 )
 from src.metrics import calculate_ivr, calculate_ivp
-from src.iv_calculator import calculate_iv   # <-- new import
+from src.iv_calculator import calculate_iv
 from src.telegram_bot import send_telegram_message, format_results
 
 def safe_float(value):
@@ -110,9 +110,8 @@ def process_bhavcopy(bhavcopy):
         return
 
     symbols = options_data['SYMBOL'].unique()
-    # We need to compute expiry in years for IV calculation
     today_dt = datetime.now()
-    risk_free_rate = 0.05  # 5% - you can adjust
+    risk_free_rate = 0.05
 
     for symbol in symbols:
         try:
@@ -120,7 +119,6 @@ def process_bhavcopy(bhavcopy):
             if len(stock_data) == 0:
                 continue
 
-            # Spot price
             spot = 0.0
             if 'UNDERLYING_PRICE' in stock_data.columns:
                 spot = safe_float(stock_data['UNDERLYING_PRICE'].iloc[0])
@@ -133,28 +131,23 @@ def process_bhavcopy(bhavcopy):
             if spot <= 0:
                 continue
 
-            # Options for this symbol
             options = stock_data[stock_data['OPTION_TYP'].isin(['CE', 'PE'])]
             if len(options) == 0:
                 continue
 
-            # ATM strike
             strikes = options['STRIKE_PR'].unique()
             if len(strikes) == 0:
                 continue
             strike_floats = [safe_float(s) for s in strikes]
             atm_strike = min(strike_floats, key=lambda x: abs(x - spot))
 
-            # Get call option at ATM strike (prefer CE, else PE)
             call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'CE')]
             if len(call) == 0:
                 call = options[(options['STRIKE_PR'] == atm_strike) & (options['OPTION_TYP'] == 'PE')]
                 if len(call) == 0:
                     continue
 
-            # Option price
             opt_price = safe_float(call['CLOSE'].iloc[0])
-            # Expiry date
             expiry_str = call['EXPIRY_DT'].iloc[0] if 'EXPIRY_DT' in call.columns else None
             if expiry_str:
                 try:
@@ -162,29 +155,27 @@ def process_bhavcopy(bhavcopy):
                 except:
                     expiry_dt = datetime.strptime(expiry_str, "%Y-%m-%d")
                 time_to_expiry = (expiry_dt - today_dt).days / 365.0
-                time_to_expiry = max(time_to_expiry, 0.001)  # avoid zero
+                time_to_expiry = max(time_to_expiry, 0.001)
             else:
-                time_to_expiry = 0.05  # ~18 days as fallback
+                time_to_expiry = 0.05
 
-            # Option type
-            option_type = call['OPTION_TYP'].iloc[0]  # 'CE' or 'PE'
+            option_type = call['OPTION_TYP'].iloc[0]
 
             # ---- Calculate true IV ----
             if opt_price > 0 and spot > 0 and atm_strike > 0 and time_to_expiry > 0:
                 try:
                     current_iv = calculate_iv(opt_price, spot, atm_strike, time_to_expiry, risk_free_rate, option_type)
-                    current_iv = max(5, min(150, current_iv))  # clamp to reasonable range
+                    current_iv = max(5, min(150, current_iv))
+                    print(f"  {symbol}: True IV = {current_iv:.2f}%")
                 except Exception as e:
-                    print(f"IV calc failed for {symbol}: {e}, using placeholder")
-                    # fallback to placeholder
+                    print(f"  {symbol}: IV calc failed ({e}), using placeholder")
                     moneyness = abs(spot - atm_strike) / spot
                     current_iv = 20 + (moneyness * 60)
             else:
-                # If price or spot is invalid, use placeholder
                 moneyness = abs(spot - atm_strike) / spot
                 current_iv = 20 + (moneyness * 60)
+                print(f"  {symbol}: Using placeholder (opt_price={opt_price}, spot={spot}, atm={atm_strike})")
 
-            # Store IV and metrics
             expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
             store_daily_iv(today, symbol, current_iv, spot, expiry, atm_strike, option_type)
 
@@ -210,7 +201,6 @@ def main():
 
     today = datetime.now().strftime("%Y-%m-%d")
 
-    # Check if we have IV data for today
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM daily_iv WHERE date = ?", (today,))
@@ -218,7 +208,6 @@ def main():
     conn.close()
 
     if count_today_iv > 0:
-        # Recompute today's metrics from the current IV data (overwrites any old cache)
         print(f"✅ Today's IV data found – recomputing metrics for {today}.")
         stock_metrics = compute_and_store_metrics(today)
         coverage = get_data_coverage()
@@ -232,7 +221,6 @@ def main():
         print("=== Analysis Complete (metrics recomputed) ===")
         return
 
-    # If no today's IV, try to download
     print("No today's IV found. Attempting to download bhavcopy...")
     bhavcopy = download_fno_bhavcopy()
     if bhavcopy is not None:
@@ -251,7 +239,6 @@ def main():
         print("=== Analysis Complete (fresh download) ===")
         return
 
-    # Fallback: latest available from cache
     latest_date = get_latest_data_date('daily_iv')
     if latest_date:
         print(f"⚠️ No data for today. Sending latest available report from {latest_date}")
@@ -267,7 +254,6 @@ def main():
         print("=== Analysis Complete (cached) ===")
         return
 
-    # No data at all
     msg = ("📊 *NSE IVP/IVR Report*\n\n"
            "No historical data available yet. Please run the "
            "**Backfill Historical Data** workflow from the Actions tab "
