@@ -15,6 +15,8 @@ import json
 import sqlite3
 from pathlib import Path
 
+from src.config import YEAR_TRADING_DAYS
+
 ROOT = Path(__file__).resolve().parent.parent
 DAILY_DIR = ROOT / "data" / "daily"
 DB_PATH = ROOT / "data" / "iv_history.db"
@@ -108,6 +110,20 @@ def export_all(keep_last=None):
     conn.close()
     print(f"Exported {len(dates)} day files ({total} stock-rows) to {DAILY_DIR}")
     return len(dates)
+
+
+def prune_files(keep_last=YEAR_TRADING_DAYS):
+    """Delete per-day files older than the most recent `keep_last` days.
+
+    Keeps data/daily a true rolling year instead of letting it grow forever.
+    """
+    files = sorted(DAILY_DIR.glob("*.json"))
+    stale = files[:-keep_last] if keep_last else []
+    for f in stale:
+        f.unlink()
+    if stale:
+        print(f"pruned {len(stale)} file(s) older than the last {keep_last} days")
+    return len(stale)
 
 
 def latest_date():

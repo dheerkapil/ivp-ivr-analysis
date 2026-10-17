@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.database import init_database
-from src.daily_files import export_date, export_all, latest_date
+from src.daily_files import export_date, export_all, latest_date, prune_files
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -33,3 +33,6 @@ if __name__ == "__main__":
             sys.exit(0)
         n = export_date(date)
         print(f"Exported {date}: {n} stocks -> data/daily/{date}.json")
+
+    # keep data/daily a rolling year
+    prune_files()
