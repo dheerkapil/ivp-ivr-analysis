@@ -1,6 +1,7 @@
 import sys
 import traceback
 import argparse
+import bisect
 from pathlib import Path
 from datetime import datetime, timedelta
 import time
@@ -12,6 +13,9 @@ sys.path.append(str(Path(__file__).parent.parent))
 from src.downloader import download_fno_bhavcopy
 from src.database import init_database, store_daily_iv, DB_PATH
 from src.iv_calculator import calculate_iv
+from src.metrics import calculate_ivr, calculate_ivp
+from src.daily_files import export_all
+
 
 def safe_float(value):
     if value is None:
@@ -21,6 +25,7 @@ def safe_float(value):
     except (ValueError, TypeError):
         return 0.0
 
+
 def get_existing_dates():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -28,6 +33,7 @@ def get_existing_dates():
     rows = cursor.fetchall()
     conn.close()
     return {row[0] for row in rows}
+
 
 def process_day_data(df, date_str):
     """
@@ -135,6 +141,58 @@ def process_day_data(df, date_str):
 
     return processed
 
+
+def compute_all_metrics(window_days=252):
+    """
+    Compute IVP/IVR for every (date, symbol) using a trailing window that ends
+    on that date (not "now"), then store into daily_metrics.
+
+    The daily run uses datetime.now() for its window, which is correct for
+    today's reading but wrong for history – hence this separate pass.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute(
+        "SELECT symbol, date, iv FROM daily_iv ORDER BY symbol, date"
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        print("compute_all_metrics: no IV data")
+        return 0
+
+    by_symbol = {}
+    for sym, d, iv in rows:
+        by_symbol.setdefault(sym, []).append((d, iv))
+
+    metric_rows = []
+    for sym, series in by_symbol.items():
+        dates = [x[0] for x in series]
+        ivs = [x[1] for x in series]
+        for i, d in enumerate(dates):
+            cutoff = (datetime.strptime(d, "%Y-%m-%d") - timedelta(days=window_days)).strftime("%Y-%m-%d")
+            lo = bisect.bisect_left(dates, cutoff)
+            hist = ivs[lo:i]  # IVs strictly before d, within the window
+            cur = ivs[i]
+            if hist:
+                ivr = calculate_ivr(cur, hist)
+                ivp = calculate_ivp(cur, hist)
+            else:
+                ivr = ivp = 50.0
+            metric_rows.append((d, sym, ivr, ivp, cur))
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.executemany(
+        """INSERT OR REPLACE INTO daily_metrics
+           (date, symbol, iv_rank, iv_percentile, current_iv)
+           VALUES (?, ?, ?, ?, ?)""",
+        metric_rows,
+    )
+    conn.commit()
+    conn.close()
+    print(f"compute_all_metrics: {len(metric_rows)} rows across {len({r[0] for r in metric_rows})} dates")
+    return len(metric_rows)
+
+
 def backfill(target_days=500):
     print(f"Starting backfill – target: collect {target_days} total trading days (no trimming).")
     init_database()
@@ -145,60 +203,61 @@ def backfill(target_days=500):
 
     if existing_count >= target_days:
         print(f"Already have {existing_count} days – no additional days needed.")
-        return
-
-    needed = target_days - existing_count
-    print(f"Need to add {needed} new trading days.")
-
-    end_date = datetime.now()
-    current = end_date
-    added = 0
-    total_processed = 0
-
-    min_date = datetime(2024, 1, 1)
-
-    while added < needed and current >= min_date:
-        if current.weekday() >= 5:
-            current -= timedelta(days=1)
-            continue
-
-        date_str = current.strftime('%Y-%m-%d')
-
-        if date_str in existing_dates:
-            current -= timedelta(days=1)
-            continue
-
-        print(f"\nAttempting new date: {date_str}")
-        data = download_fno_bhavcopy(current)
-
-        if data is not None and not data.empty:
-            data['date'] = date_str
-            print(f"  ✅ Downloaded ({added+1}/{needed})")
-
-            processed = process_day_data(data, date_str)
-            total_processed += processed
-            added += 1
-            existing_dates.add(date_str)
-            print(f"  Stored {processed} records for {date_str}")
-        else:
-            print(f"  ❌ No data for {date_str}")
-
-        current -= timedelta(days=1)
-        time.sleep(1)
-
-    if added == 0:
-        print("No new data added.")
     else:
-        print(f"\nAdded {added} new trading days.")
-        print(f"Total records added: {total_processed}")
+        needed = target_days - existing_count
+        print(f"Need to add {needed} new trading days.")
+
+        end_date = datetime.now()
+        current = end_date
+        added = 0
+        total_processed = 0
+
+        min_date = datetime(2024, 1, 1)
+
+        while added < needed and current >= min_date:
+            if current.weekday() >= 5:
+                current -= timedelta(days=1)
+                continue
+
+            date_str = current.strftime('%Y-%m-%d')
+
+            if date_str in existing_dates:
+                current -= timedelta(days=1)
+                continue
+
+            print(f"\nAttempting new date: {date_str}")
+            data = download_fno_bhavcopy(current)
+
+            if data is not None and not data.empty:
+                data['date'] = date_str
+                print(f"  ✅ Downloaded ({added+1}/{needed})")
+
+                processed = process_day_data(data, date_str)
+                total_processed += processed
+                added += 1
+                existing_dates.add(date_str)
+                print(f"  Stored {processed} records for {date_str}")
+            else:
+                print(f"  ❌ No data for {date_str}")
+
+            current -= timedelta(days=1)
+            time.sleep(1)
+
+        if added == 0:
+            print("No new data added.")
+        else:
+            print(f"\nAdded {added} new trading days.")
+            print(f"Total records added: {total_processed}")
 
     final_count = len(get_existing_dates())
     print(f"Database now has {final_count} distinct trading days total.")
 
-    if final_count < target_days:
-        print(f"⚠️ Only {final_count} days available (reached 2024-01-01).")
+    # ---- Compute IVP/IVR for every historical date ----
+    compute_all_metrics()
 
-    # No trim – all data kept
+    # ---- Write one file per day (durable backup + daily repo activity) ----
+    export_all()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Backfill historical IV data without trimming")

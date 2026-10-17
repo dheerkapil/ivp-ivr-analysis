@@ -31,14 +31,18 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check DB days
-        run: |
-          python -c "import sqlite3; conn = sqlite3.connect('data/iv_history.db'); count = conn.execute('SELECT COUNT(DISTINCT date) FROM daily_iv').fetchone()[0]; print(f'Days in daily_iv: {count}'); conn.close()"
-
       - name: Create data and output directories
         run: |
           mkdir -p data
+          mkdir -p data/daily
           mkdir -p output
+
+      - name: Rebuild database from per-day files
+        run: python scripts/bootstrap_db.py
+
+      - name: Check DB days
+        run: |
+          python -c "import sqlite3; conn = sqlite3.connect('data/iv_history.db'); count = conn.execute('SELECT COUNT(DISTINCT date) FROM daily_iv').fetchone()[0]; print(f'Days in daily_iv: {count}'); conn.close()"
 
       - name: Run main analysis
         env:
@@ -46,10 +50,14 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python src/main.py
 
+      - name: Export today's reading file
+        run: python scripts/export_daily.py
+
       - name: Commit and push results
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add output/daily_ivp_ivr.json
-          git commit -m "Daily update: $(date +'%Y-%m-%d')" || echo "No changes to commit"
-          git push
+          git add data/daily
+          git commit -m "Daily readings: $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git pull --rebase --autostash origin main || echo "rebase skipped"
+          git push || echo "Nothing to push"
