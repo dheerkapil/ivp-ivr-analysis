@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       target:
-        description: 'Number of trading days to collect (default: 252 ~ 1 year)'
+        description: 'Trading days to collect (default: 312 = a year + 60-day warm-up)'
         required: true
-        default: '252'
+        default: '312'
         type: string
 
 permissions:

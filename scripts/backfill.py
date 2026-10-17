@@ -13,7 +13,8 @@ sys.path.append(str(Path(__file__).parent.parent))
 from src.downloader import download_fno_bhavcopy
 from src.database import init_database, store_daily_iv, DB_PATH
 from src.iv_calculator import calculate_iv
-from src.metrics import calculate_ivr, calculate_ivp
+from src.metrics import calculate_ivr, calculate_ivp, compute_iv_rank_percentile
+from src.config import IV_WINDOW_DAYS, YEAR_TRADING_DAYS
 from src.daily_files import export_all
 
 
@@ -142,7 +143,7 @@ def process_day_data(df, date_str):
     return processed
 
 
-def compute_all_metrics(window_days=252):
+def compute_all_metrics(window_days=IV_WINDOW_DAYS):
     """
     Compute IVP/IVR for every (date, symbol) using a trailing window that ends
     on that date (not "now"), then store into daily_metrics.
@@ -171,13 +172,9 @@ def compute_all_metrics(window_days=252):
         for i, d in enumerate(dates):
             cutoff = (datetime.strptime(d, "%Y-%m-%d") - timedelta(days=window_days)).strftime("%Y-%m-%d")
             lo = bisect.bisect_left(dates, cutoff)
-            hist = ivs[lo:i]  # IVs strictly before d, within the window
+            window = ivs[lo:i + 1]   # window INCLUDES the current reading
             cur = ivs[i]
-            if hist:
-                ivr = calculate_ivr(cur, hist)
-                ivp = calculate_ivp(cur, hist)
-            else:
-                ivr = ivp = 50.0
+            ivr, ivp = compute_iv_rank_percentile(cur, window)
             metric_rows.append((d, sym, ivr, ivp, cur))
 
     conn = sqlite3.connect(DB_PATH)
@@ -256,12 +253,13 @@ def backfill(target_days=500):
     compute_all_metrics()
 
     # ---- Write one file per day (durable backup + daily repo activity) ----
-    export_all()
+    # Publish only the rolling year; earlier days were warm-up for the ranks.
+    export_all(keep_last=YEAR_TRADING_DAYS)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Backfill historical IV data without trimming")
-    parser.add_argument('--target', type=int, default=500,
-                        help='Number of trading days to collect (default: 500)')
+    parser.add_argument('--target', type=int, default=YEAR_TRADING_DAYS + 60,
+                        help='Number of trading days to collect (default: a year + warm-up)')
     args = parser.parse_args()
     backfill(target_days=args.target)

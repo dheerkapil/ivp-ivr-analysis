@@ -8,14 +8,14 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from src.config import load_config, get_project_root
+from src.config import load_config, get_project_root, IV_WINDOW_DAYS, TRIM_KEEP_DAYS
 from src.downloader import download_fno_bhavcopy
 from src.database import (
     init_database, store_daily_iv, store_daily_metrics,
     get_historical_ivs, get_symbol_history_count, get_data_coverage,
     trim_old_data, DB_PATH
 )
-from src.metrics import calculate_ivr, calculate_ivp
+from src.metrics import calculate_ivr, calculate_ivp, compute_iv_rank_percentile
 from src.iv_calculator import calculate_iv
 from src.telegram_bot import send_telegram_message, format_results
 
@@ -39,21 +39,16 @@ def compute_and_store_metrics(date):
 
     stock_metrics = []
     for symbol, current_iv in rows:
-        hist_data = get_historical_ivs(symbol, days=252)
-        if len(hist_data) > 0:
-            historical_ivs = hist_data['iv'].tolist()
-            ivr = calculate_ivr(current_iv, historical_ivs)
-            ivp = calculate_ivp(current_iv, historical_ivs)
-        else:
-            ivr = 50.0
-            ivp = 50.0
+        hist_data = get_historical_ivs(symbol, days=IV_WINDOW_DAYS)
+        window_ivs = hist_data['iv'].tolist() if len(hist_data) > 0 else []
+        ivr, ivp = compute_iv_rank_percentile(current_iv, window_ivs)
         store_daily_metrics(date, symbol, ivr, ivp, current_iv)
         hist_days = get_symbol_history_count(symbol)
         stock_metrics.append({
             'symbol': symbol,
             'iv': round(current_iv, 1),
-            'ivr': round(ivr, 1),
-            'ivp': round(ivp, 1),
+            'ivr': ivr,
+            'ivp': ivp,
             'hist_days': hist_days
         })
     return stock_metrics
@@ -76,8 +71,8 @@ def load_metrics_for_date(date):
         stock_metrics.append({
             'symbol': symbol,
             'iv': round(iv, 1),
-            'ivr': round(ivr, 1),
-            'ivp': round(ivp, 1),
+            'ivr': ivr,
+            'ivp': ivp,
             'hist_days': hist_days
         })
     return stock_metrics
@@ -178,14 +173,10 @@ def process_bhavcopy(bhavcopy, date_str):
             expiry = str(call['EXPIRY_DT'].iloc[0]) if 'EXPIRY_DT' in call.columns else 'N/A'
             store_daily_iv(date_str, symbol, current_iv, spot, expiry, atm_strike, option_type)
 
-            hist_data = get_historical_ivs(symbol, days=252)
-            if len(hist_data) > 0:
-                historical_ivs = hist_data['iv'].tolist()
-                ivr = calculate_ivr(current_iv, historical_ivs)
-                ivp = calculate_ivp(current_iv, historical_ivs)
-                store_daily_metrics(date_str, symbol, ivr, ivp, current_iv)
-            else:
-                store_daily_metrics(date_str, symbol, 50.0, 50.0, current_iv)
+            hist_data = get_historical_ivs(symbol, days=IV_WINDOW_DAYS)
+            window_ivs = hist_data['iv'].tolist() if len(hist_data) > 0 else []
+            ivr, ivp = compute_iv_rank_percentile(current_iv, window_ivs)
+            store_daily_metrics(date_str, symbol, ivr, ivp, current_iv)
         except Exception as e:
             print(f"Error with {symbol}: {e}")
             traceback.print_exc()
@@ -217,7 +208,7 @@ def main():
         for idx, msg in enumerate(messages):
             print(f"Sending part {idx+1}/{len(messages)}")
             send_telegram_message(msg)
-        trim_old_data(253)
+        trim_old_data(TRIM_KEEP_DAYS)
         print("=== Analysis Complete (metrics recomputed) ===")
         return
 
@@ -255,7 +246,7 @@ def main():
         for idx, msg in enumerate(messages):
             print(f"Sending part {idx+1}/{len(messages)}")
             send_telegram_message(msg)
-        trim_old_data(253)
+        trim_old_data(TRIM_KEEP_DAYS)
         print(f"=== Analysis Complete (fresh download from {date_used}) ===")
         return
 

@@ -2,6 +2,8 @@ import os
 import requests
 from datetime import datetime
 
+from src.config import IV_WINDOW_DAYS, MIN_HISTORY_DAYS
+
 def send_telegram_message(message):
     """Send a single message via Telegram bot"""
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
@@ -33,84 +35,112 @@ def send_telegram_message(message):
         print(f"❌ Exception sending Telegram message: {e}")
         return False
 
+
+def _cell(value, decimals=1, suffix=""):
+    """Format a metric, rendering a missing (gated) value as an em dash."""
+    if value is None:
+        return "—"
+    if isinstance(value, (int, float)):
+        return f"{value:.{decimals}f}{suffix}" if decimals is not None else f"{value}{suffix}"
+    return f"{value}{suffix}"
+
+
+def _table(rows, symw):
+    """
+    Build a fixed-width table. Every line has identical width and is returned
+    as a monospace block (triple backticks) so columns line up regardless of
+    how many digits a value has.
+    """
+    cols = (symw, 5, 6, 7, 5)  # SYMBOL  IVP  IVR  IV  DAYS
+    fmt = " ".join(f"{{:>{w}}}" if i else f"{{:<{w}}}" for i, w in enumerate(cols))
+
+    head = fmt.format("STOCK", "IVP", "IVR", "IV", "DAYS")
+    sep = " ".join("-" * w for w in cols)
+    body = [fmt.format(*r) for r in rows]
+    return "```\n" + "\n".join([head, sep] + body) + "\n```"
+
+
 def format_results(stock_metrics, date, total_days=0, oldest=None, newest=None):
-    """Return a list of messages (each <= 4096 chars) to send"""
+    """Return a list of messages (each <= 4096 chars) to send."""
     if not stock_metrics:
         return ["No data available for today"]
-    
-    sorted_metrics = sorted(stock_metrics, key=lambda x: x['ivp'], reverse=True)
-    
-    # Build the header (common for all messages)
+
+    ranked = sorted([s for s in stock_metrics if s.get('ivp') is not None],
+                    key=lambda x: x['ivp'], reverse=True)
+    unranked = [s for s in stock_metrics if s.get('ivp') is None]
+
     coverage_line = ""
     if total_days > 0 and oldest and newest:
-        coverage_line = f"📅 Historical data: {total_days} days (of 252) – from {oldest} to {newest}\n\n"
+        coverage_line = f"📅 Historical data: {total_days} days – from {oldest} to {newest}\n\n"
     elif total_days > 0:
-        coverage_line = f"📅 Historical data: {total_days} days (of 252)\n\n"
-    
+        coverage_line = f"📅 Historical data: {total_days} days\n\n"
+
     header = f"📊 *NSE IVP/IVR Report* - {date}\n\n"
     header += coverage_line
-    header += f"*Total symbols: {len(sorted_metrics)}*\n\n"
+    header += f"*Total symbols: {len(stock_metrics)}*\n\n"
     header += "*Sorted by IV Percentile (Highest → Lowest)*\n\n"
-    header += "```\n"
-    header += f"{'STOCK':<12} {'IVP':>6} {'IVR':>6} {'IV':>6} {'Days':>6}\n"
-    header += f"{'-'*12} {'-'*6} {'-'*6} {'-'*6} {'-'*6}\n"
-    
-    # Build rows
-    rows = []
-    for stock in sorted_metrics:
-        symbol = stock['symbol'][:12]
-        ivp = f"{int(round(stock['ivp']))}%"
-        ivr = f"{round(stock['ivr'], 1)}"
-        iv = f"{round(stock['iv'], 1)}"
-        days = str(stock.get('hist_days', 0))
-        rows.append(f"{symbol:<12} {ivp:>6} {ivr:>6} {iv:>6} {days:>6}")
-    
-    # Split rows into chunks of 50 (adjust if needed)
-    chunk_size = 50
+
+    # symbol column sized to the actual data (keeps the table narrow and aligned)
+    symw = max(6, min(14, max(len(s['symbol']) for s in stock_metrics)))
+
+    # rows as plain tuples
+    table_rows = []
+    for s in ranked:
+        table_rows.append((
+            s['symbol'][:symw],
+            f"{int(round(s['ivp']))}%",
+            _cell(s.get('ivr')),
+            _cell(s.get('iv')),
+            str(s.get('hist_days', 0)),
+        ))
+    for s in unranked:
+        table_rows.append((
+            s['symbol'][:symw],
+            "—", "—", _cell(s.get('iv')), str(s.get('hist_days', 0)),
+        ))
+
+    # chunk the rows; Telegram caps a message at 4096 chars
+    chunk_size = 45
     messages = []
-    
-    for i in range(0, len(rows), chunk_size):
-        chunk = rows[i:i+chunk_size]
-        body = "\n".join(chunk)
-        # Add closing code block for each chunk
+    n = len(table_rows)
+    for i in range(0, n, chunk_size):
+        chunk = table_rows[i:i + chunk_size]
+        block = _table(chunk, symw)
         if i == 0:
-            # First message includes header and first chunk
-            full_msg = header + body + "\n```"
+            full_msg = header + block
         else:
-            # Subsequent messages just have the table continuation
-            full_msg = f"*Continued...*\n\n```\n" + body + "\n```"
-        
-        # Append footer only to the last message
-        if i + chunk_size >= len(rows):
-            full_msg += "\n\n" + footer_text(sorted_metrics)
-        
+            full_msg = "*Continued...*\n\n" + block
+        if i + chunk_size >= n:
+            full_msg += "\n\n" + footer_text(ranked, unranked)
         messages.append(full_msg)
-    
+
     return messages
 
-def footer_text(sorted_metrics):
+
+def footer_text(sorted_metrics, unranked=None):
     """Generate recommendations and warnings (common for all)"""
+    unranked = unranked or []
     high_ivp = [s for s in sorted_metrics if s['ivp'] >= 80]
     low_ivp = [s for s in sorted_metrics if s['ivp'] <= 20]
-    low_history = [s for s in sorted_metrics if s.get('hist_days', 0) < 30]
-    
+
     footer = ""
     if high_ivp:
         footer += f"\n🔴 *High IVP (>80%)*: {', '.join([s['symbol'] for s in high_ivp[:5]])}"
         if len(high_ivp) > 5:
             footer += f" and {len(high_ivp)-5} more"
         footer += "\n   *Consider credit spreads*"
-    
+
     if low_ivp:
         footer += f"\n\n🟢 *Low IVP (<20%)*: {', '.join([s['symbol'] for s in low_ivp[:5]])}"
         if len(low_ivp) > 5:
             footer += f" and {len(low_ivp)-5} more"
         footer += "\n   *Consider debit spreads*"
-    
-    if low_history:
-        footer += f"\n\n⚠️ *Low history (<30 days)*: {', '.join([s['symbol'] for s in low_history[:5]])}"
-        if len(low_history) > 5:
-            footer += f" and {len(low_history)-5} more"
-        footer += "\n   IVP/IVR for these stocks are less reliable."
-    
+
+    if unranked:
+        footer += (f"\n\n⚠️ *Not ranked (<{MIN_HISTORY_DAYS} days of history)*: "
+                   f"{', '.join([s['symbol'] for s in unranked[:5]])}")
+        if len(unranked) > 5:
+            footer += f" and {len(unranked)-5} more"
+        footer += "\n   Shown with IV only; IVP/IVR suppressed until enough history."
+
     return footer

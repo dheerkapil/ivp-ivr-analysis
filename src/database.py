@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from src.config import IV_WINDOW_DAYS, TRIM_KEEP_DAYS
+
 DB_PATH = Path(__file__).parent.parent / "data" / "iv_history.db"
 
 def init_database():
@@ -62,7 +64,7 @@ def store_daily_metrics(date, symbol, iv_rank, iv_percentile, current_iv):
     conn.commit()
     conn.close()
 
-def get_historical_ivs(symbol, days=252):
+def get_historical_ivs(symbol, days=IV_WINDOW_DAYS):
     conn = sqlite3.connect(DB_PATH)
     cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
     query = '''
@@ -98,7 +100,7 @@ def get_symbol_history_count(symbol):
     conn.close()
     return result
 
-def trim_old_data(days=253):
+def trim_old_data(days=TRIM_KEEP_DAYS):
     """
     Delete records older than the most recent `days` trading days.
     Keeps only the last `days` days of data for each symbol.

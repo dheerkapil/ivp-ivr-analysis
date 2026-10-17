@@ -90,10 +90,17 @@ def export_date(date, conn=None, hist=None):
     return len(stocks)
 
 
-def export_all():
-    """Export every date present in the DB to its own file."""
+def export_all(keep_last=None):
+    """Export dates present in the DB to their own files.
+
+    keep_last=N publishes only the most recent N trading days — used after a
+    backfill that deliberately collected extra warm-up days (needed to compute
+    a rank) but should only publish the rolling year.
+    """
     conn = _connect()
     dates = [r[0] for r in conn.execute("SELECT DISTINCT date FROM daily_iv ORDER BY date")]
+    if keep_last:
+        dates = dates[-keep_last:]
     hist = _hist_counts(conn)
     total = 0
     for d in dates:
