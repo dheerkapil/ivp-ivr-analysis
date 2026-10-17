@@ -1,25 +1,23 @@
 name: Debug nselib
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   debug:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-    
+
     - name: Install nselib
       run: pip install nselib pandas
-    
+
     - name: Run debug script
       run: python scripts/debug_nselib.py
