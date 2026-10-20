@@ -1,16 +1,30 @@
 name: Daily IVP/IVR Update
 
+# Retry ladder: every 30 minutes from 16:30 IST to 00:00 IST, Mon–Fri.
+#   11:00–18:30 UTC  ==  16:30–00:00 IST
+#
+# Each run is idempotent: it sends the report only if today's trading day has
+# not already gone out (tracked in data/state.json). So late or bunched runs
+# are harmless, and you still get exactly ONE report per trading day — as soon
+# as the bhavcopy is available. If nothing turns up by midnight IST, one
+# "no data" alert is sent instead.
+#
+# NOTE: GitHub's scheduler routinely runs these slots several hours late; the
+# ladder is dense so that whichever slot actually fires after ~18:00 IST is the
+# one that delivers the report. See README for the reliable-trigger option.
+
 on:
   schedule:
-    - cron: '00 13 * * 1-5'   # 18:30 IST
-    - cron: '30 13 * * 1-5'   # 19:00 IST
-    - cron: '00 14 * * 1-5'   # 19:30 IST
-    - cron: '30 14 * * 1-5'   # 20:00 IST
-    - cron: '00 15 * * 1-5'   # 20:30 IST
-  workflow_dispatch:          # Manual trigger (always available)
+    - cron: '0,30 11-18 * * 1-5'
+  workflow_dispatch:          # manual trigger (always available)
 
 permissions:
   contents: write
+
+# Serialise runs so two overlapping slots can't both decide to send.
+concurrency:
+  group: ivp-ivr-daily
+  cancel-in-progress: false
 
 jobs:
   update-data:
@@ -48,6 +62,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_ERROR_CHAT_ID: ${{ secrets.TELEGRAM_ERROR_CHAT_ID }}
         run: python src/main.py
 
       - name: Export today's reading file
@@ -57,7 +72,7 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add data/daily
-          git commit -m "Daily readings: $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git add data
+          git commit -m "IVP/IVR state $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "No changes to commit"
           git pull --rebase --autostash origin main || echo "rebase skipped"
           git push || echo "Nothing to push"

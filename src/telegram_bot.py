@@ -1,39 +1,60 @@
 import os
 import requests
-from datetime import datetime
 
 from src.config import IV_WINDOW_DAYS, MIN_HISTORY_DAYS
 
-def send_telegram_message(message):
-    """Send a single message via Telegram bot"""
-    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
-    chat_id = os.environ.get('TELEGRAM_CHAT_ID')
-    
-    if not bot_token or not chat_id:
-        print("❌ Telegram credentials not found in environment")
-        return False
-    
+
+def credentials_present():
+    """True when both the bot token and the report chat id are configured."""
+    return bool(os.environ.get('TELEGRAM_BOT_TOKEN') and os.environ.get('TELEGRAM_CHAT_ID'))
+
+
+def _post(bot_token, chat_id, message):
+    """POST one message to Telegram. Returns (ok, detail)."""
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    
-    payload = {
-        'chat_id': chat_id,
-        'text': message,
-        'parse_mode': 'Markdown'
-    }
-    
+    payload = {'chat_id': chat_id, 'text': message, 'parse_mode': 'Markdown'}
     try:
-        print(f"📤 Sending message (length: {len(message)} chars)")
-        response = requests.post(url, json=payload, timeout=10)
+        print(f"📤 Sending message to {chat_id} (length: {len(message)} chars)")
+        response = requests.post(url, json=payload, timeout=15)
         print(f"📥 Response status: {response.status_code}")
         if response.status_code == 200:
             print("✅ Telegram notification sent successfully!")
-            return True
-        else:
-            print(f"❌ Telegram API error: {response.status_code} - {response.text[:200]}")
-            return False
+            return True, "ok"
+        detail = f"HTTP {response.status_code}: {response.text[:300]}"
+        print(f"❌ Telegram API error: {detail}")
+        return False, detail
     except Exception as e:
         print(f"❌ Exception sending Telegram message: {e}")
+        return False, str(e)
+
+
+def send_telegram_message(message, chat_id=None):
+    """Send a single message via the Telegram bot to the report chat."""
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = chat_id or os.environ.get('TELEGRAM_CHAT_ID')
+
+    if not bot_token or not chat_id:
+        print("❌ Telegram credentials not found in environment "
+              "(TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)")
         return False
+
+    ok, _ = _post(bot_token, chat_id, message)
+    return ok
+
+
+def send_error_notification(message):
+    """
+    Send to TELEGRAM_ERROR_CHAT_ID when set, else to the normal chat.
+
+    Returns True when the message went out. If no credentials exist at all this
+    returns False — the caller decides how loud to be about it.
+    """
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = os.environ.get('TELEGRAM_ERROR_CHAT_ID') or os.environ.get('TELEGRAM_CHAT_ID')
+    if not bot_token or not chat_id:
+        return False
+    ok, _ = _post(bot_token, chat_id, message)
+    return ok
 
 
 def _cell(value, decimals=1, suffix=""):

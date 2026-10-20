@@ -6,9 +6,46 @@ Automated daily analysis of Implied Volatility Percentile (IVP) and Implied Vola
 
 - 📊 Fetches daily F&O bhavcopy from NSE
 - 📈 Calculates IV, IVP, and IVR for all F&O stocks
-- 📱 Sends Telegram notification with sorted results
+- 📱 Sends **one** Telegram report per trading day, as soon as the bhavcopy is out
+- 🔁 Retries every 30 minutes from 16:30 to 00:00 IST until the data appears
+- ⚠️ Alerts you if no data could be fetched by the end of the window
 - ☁️ Runs automatically via GitHub Actions
-- 📦 Outputs JSON for easy integration
+- 📦 One JSON file per trading day in `data/daily/`
+
+## How the daily alert works
+
+The workflow fires on a 30-minute ladder — `16:30, 17:00, … 23:30, 00:00` IST,
+Mon–Fri. Every run asks one question: *has today's report gone out yet?*
+
+- **Data is available** → compute IV/IVR/IVP, send the full report, record the
+  day as sent in `data/state.json`, and stop. Later slots that day do nothing.
+- **Data not published yet** (NSE posts the F&O bhavcopy around 18:00 IST, and
+  as late as ~21:00 on monthly-expiry Thursdays) → exit quietly and wait for the
+  next slot.
+- **Nothing by midnight IST** → send a single "no data" alert and close the day.
+
+So you get **exactly one report per trading day**, at the earliest slot where the
+data exists — never a duplicate flood, and never a silent failure. The first slot
+is at 16:30 as requested, but note the NSE bhavcopy is not usually published
+until ~18:00, so the early slots are effectively a watch.
+
+### Delivery guarantees
+
+- A failed Telegram send (or missing credentials) makes the Actions run **fail
+  (red)** instead of silently passing, and a note goes to
+  `TELEGRAM_ERROR_CHAT_ID` when that secret is set.
+- All dates are computed in **IST**, not the runner's UTC clock — important
+  because GitHub frequently runs the late slots after midnight IST.
+
+### A note on GitHub's scheduler
+
+GitHub's `schedule` trigger is best-effort and, on this repository, has been
+delivering runs **4–6 hours late** (a slot written for 18:30 IST has been firing
+around 00:30 IST). The dense ladder plus the "send once" state means you still
+get a single correct report — but the delivery time can drift. If exact timing
+matters, trigger the workflow from an external scheduler (e.g. a cron service
+calling `workflow_dispatch` via the GitHub API) instead of relying on
+`schedule`.
 
 ## Setup
 
@@ -16,5 +53,13 @@ Automated daily analysis of Implied Volatility Percentile (IVP) and Implied Vola
 2. Install dependencies: `pip install -r requirements.txt`
 3. Create `.env` file with Telegram credentials
 4. Run: `python src/main.py`
+
+### Secrets
+
+| Secret | Purpose |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token |
+| `TELEGRAM_CHAT_ID` | Chat that receives the daily report |
+| `TELEGRAM_ERROR_CHAT_ID` | *(optional)* chat for failure / no-data alerts |
 
 ## Telegram Notification Example

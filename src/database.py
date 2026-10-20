@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from src.config import IV_WINDOW_DAYS, TRIM_KEEP_DAYS
+from src.config import IV_WINDOW_DAYS, TRIM_KEEP_DAYS, now_ist
 
 DB_PATH = Path(__file__).parent.parent / "data" / "iv_history.db"
 
@@ -66,7 +66,9 @@ def store_daily_metrics(date, symbol, iv_rank, iv_percentile, current_iv):
 
 def get_historical_ivs(symbol, days=IV_WINDOW_DAYS):
     conn = sqlite3.connect(DB_PATH)
-    cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    # Cut-off is derived in IST — the runner clock is UTC, which would shift the
+    # window by a day for runs that land after midnight IST.
+    cutoff_date = (now_ist() - timedelta(days=days)).strftime("%Y-%m-%d")
     query = '''
         SELECT date, iv FROM daily_iv 
         WHERE symbol = ? AND date >= ?
