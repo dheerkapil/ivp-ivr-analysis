@@ -15,9 +15,11 @@ name: Daily IVP/IVR Update
 # nothing else. The bundled holiday list is refreshed weekly — on the first run
 # on/after Monday 18:00 IST.
 #
-# NOTE: GitHub's scheduler routinely runs these slots several hours late; the
-# ladder is dense so that whichever slot actually fires after ~18:00 IST is the
-# one that delivers the report. See README for the reliable-trigger option.
+# NOTE: GitHub's `schedule` trigger is best-effort and runs from a shared queue;
+# on this repo it has fired 35 min to ~10 h late. This ladder is the FALLBACK.
+# For reliable timing, trigger this workflow with `workflow_dispatch` from an
+# external timer — see docs/external-trigger.md. Both paths are safe together
+# because the run is idempotent (it sends at most one report per trading day).
 
 on:
   schedule:

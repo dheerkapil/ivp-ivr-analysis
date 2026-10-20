@@ -54,15 +54,22 @@ a dropped report.
 - All dates are computed in **IST**, not the runner's UTC clock — important
   because GitHub frequently runs the late slots after midnight IST.
 
-### A note on GitHub's scheduler
+### Reliable timing (external trigger)
 
-GitHub's `schedule` trigger is best-effort and, on this repository, has been
-delivering runs **4–6 hours late** (a slot written for 18:30 IST has been firing
-around 00:30 IST). The dense ladder plus the "send once" state means you still
-get a single correct report — but the delivery time can drift. If exact timing
-matters, trigger the workflow from an external scheduler (e.g. a cron service
-calling `workflow_dispatch` via the GitHub API) instead of relying on
-`schedule`.
+GitHub's `schedule` trigger is best-effort and runs from a shared queue. On this
+repository it has been firing **anywhere from ~35 minutes to ~10 hours late**
+(measured against the cron slot), so a report written for 18:00 IST can land
+after midnight. Nothing in the workflow file can control this.
+
+The fix is to trigger the workflow with `workflow_dispatch`, which starts
+immediately, from an external timer — see
+**[docs/external-trigger.md](docs/external-trigger.md)** for the exact setup
+(a fine-grained token plus a free cron service).
+
+The in-workflow `schedule` ladder is kept as a **fallback**: if the external
+timer is ever down, you still get your report, just at GitHub's unpredictable
+time. Because the workflow is idempotent, both firing together still yields
+exactly one report.
 
 ## Setup
 
