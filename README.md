@@ -7,16 +7,19 @@ Automated daily analysis of Implied Volatility Percentile (IVP) and Implied Vola
 - 📊 Fetches daily F&O bhavcopy from NSE
 - 📈 Calculates IV, IVP, and IVR for all F&O stocks
 - 📱 Sends **one** Telegram report per trading day, as soon as the bhavcopy is out
-- 🔁 Retries every 30 minutes from 16:30 to 00:00 IST until the data appears
+- 🔁 Retries every 30 minutes from 18:00 to 00:00 IST until the data appears
+- 🗓️ Skips NSE trading holidays automatically
 - ⚠️ Alerts you if no data could be fetched by the end of the window
 - ☁️ Runs automatically via GitHub Actions
 - 📦 One JSON file per trading day in `data/daily/`
 
 ## How the daily alert works
 
-The workflow fires on a 30-minute ladder — `16:30, 17:00, … 23:30, 00:00` IST,
+The workflow fires on a 30-minute ladder — `18:00, 18:30, … 23:30, 00:00` IST,
 Mon–Fri. Every run asks one question: *has today's report gone out yet?*
 
+- **Trading holiday** (checked against NSE's holiday list) → do nothing at all:
+  no report, no retries, no alert.
 - **Data is available** → compute IV/IVR/IVP, send the full report, record the
   day as sent in `data/state.json`, and stop. Later slots that day do nothing.
 - **Data not published yet** (NSE posts the F&O bhavcopy around 18:00 IST, and
@@ -25,9 +28,15 @@ Mon–Fri. Every run asks one question: *has today's report gone out yet?*
 - **Nothing by midnight IST** → send a single "no data" alert and close the day.
 
 So you get **exactly one report per trading day**, at the earliest slot where the
-data exists — never a duplicate flood, and never a silent failure. The first slot
-is at 16:30 as requested, but note the NSE bhavcopy is not usually published
-until ~18:00, so the early slots are effectively a watch.
+data exists — never a duplicate flood, and never a silent failure.
+
+### Trading holidays
+
+The day under report is checked against NSE's holiday list (`FO` segment), taken
+live from NSE's `holiday-master` API with a bundled fallback in
+`config/nse_holidays.json` for when the API is unreachable. On a holiday the run
+does nothing, so you don't get a spurious late-night "no data" alert. The
+bundled list should be refreshed once a year (or just rely on the live API).
 
 ### Delivery guarantees
 

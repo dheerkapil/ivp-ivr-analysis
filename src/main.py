@@ -13,6 +13,9 @@ fire (or how late GitHub runs them).
 If no data has appeared by the time the window closes (midnight IST), a single
 "no data" alert is sent instead, and the day is closed.
 
+Trading holidays are detected up front (see src/holidays.py): on a holiday the
+run does nothing at all — no report, no retries, no "no data" alert.
+
 Loud failure
 ------------
 A send that fails is never swallowed: the run exits non-zero so the Actions job
@@ -39,6 +42,7 @@ from src.database import (
 from src.metrics import compute_iv_rank_percentile
 from src.contracts import compute_symbol_iv
 from src.state import already_sent, mark_sent, already_failed, mark_failed
+from src.holidays import is_trading_holiday
 from src.telegram_bot import (
     send_telegram_message, send_error_notification,
     format_results, credentials_present,
@@ -204,6 +208,14 @@ def main():
 
     load_config()
     init_database()
+
+    # Trading holiday? The exchange publishes no bhavcopy, so there is nothing
+    # to report and no reason to run the periodic checks at all.
+    holiday, holiday_name = is_trading_holiday(target)
+    if holiday:
+        print(f"{target_str} is an NSE trading holiday ({holiday_name}) — "
+              f"skipping the report and all periodic checks.")
+        return 0
 
     if not credentials_present():
         print("❌ TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID not set — cannot send any alert.")

@@ -1,7 +1,8 @@
 name: Daily IVP/IVR Update
 
-# Retry ladder: every 30 minutes from 16:30 IST to 00:00 IST, Mon–Fri.
-#   11:00–18:30 UTC  ==  16:30–00:00 IST
+# Retry ladder: every 30 minutes from 18:00 IST to 00:00 IST, Mon–Fri.
+#   12:30 UTC       ==  18:00 IST  (first check)
+#   13:00–18:30 UTC ==  18:30–00:00 IST
 #
 # Each run is idempotent: it sends the report only if today's trading day has
 # not already gone out (tracked in data/state.json). So late or bunched runs
@@ -9,13 +10,17 @@ name: Daily IVP/IVR Update
 # as the bhavcopy is available. If nothing turns up by midnight IST, one
 # "no data" alert is sent instead.
 #
+# NSE trading holidays are detected up front (src/holidays.py): on a holiday the
+# run does nothing at all — no report, no retries, no alert.
+#
 # NOTE: GitHub's scheduler routinely runs these slots several hours late; the
 # ladder is dense so that whichever slot actually fires after ~18:00 IST is the
 # one that delivers the report. See README for the reliable-trigger option.
 
 on:
   schedule:
-    - cron: '0,30 11-18 * * 1-5'
+    - cron: '30 12 * * 1-5'        # 18:00 IST
+    - cron: '0,30 13-18 * * 1-5'   # 18:30–00:00 IST
   workflow_dispatch:          # manual trigger (always available)
 
 permissions:

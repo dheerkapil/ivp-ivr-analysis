@@ -31,13 +31,13 @@ def now_ist():
 
 
 # ── Alert window (IST) ────────────────────────────────────
-# The daily report is attempted from ALERT_FIRST (16:30 IST) every 30 minutes.
+# The daily report is attempted from ALERT_FIRST (18:00 IST) every 30 minutes.
 # The first attempt that finds the day's bhavcopy sends the full report and the
 # day is closed. If nothing is found by the end of the window (midnight IST),
 # a single "no data" alert is sent instead. See trading_day_for() for how a run
 # is mapped to the trading day it belongs to.
-ALERT_FIRST_HOUR = 16
-ALERT_FIRST_MINUTE = 30
+ALERT_FIRST_HOUR = 18
+ALERT_FIRST_MINUTE = 0
 ALERT_SLOT_MINUTES = 30
 
 
