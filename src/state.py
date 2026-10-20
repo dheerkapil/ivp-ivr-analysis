@@ -7,8 +7,11 @@ to the per-day reading files.
 
 Shape:
     {
-      "sent":   {"2026-10-19": "2026-10-19T18:47:12+05:30"},
-      "failed": {"2026-10-17": "2026-10-18T00:05:31+05:30"}
+      "sent":              {"2026-10-19": "2026-10-19T18:47:12+05:30"},
+      "failed":            {"2026-10-17": "2026-10-18T00:05:31+05:30"},
+      "holiday_notified":  {"2026-10-20": "2026-10-20T18:01:09+05:30"},
+      "holiday_sync_week": [2026, 43],
+      "holiday_sync_at":   "2026-10-19T18:03:44+05:30"
     }
 """
 
@@ -32,6 +35,7 @@ def save_state(state):
     STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
 
 
+# ── daily report ──────────────────────────────────────────
 def already_sent(date_str):
     return date_str in load_state().get("sent", {})
 
@@ -49,4 +53,28 @@ def already_failed(date_str):
 def mark_failed(date_str, when):
     state = load_state()
     state.setdefault("failed", {})[date_str] = when
+    save_state(state)
+
+
+# ── holiday notice ────────────────────────────────────────
+def holiday_notified(date_str):
+    return date_str in load_state().get("holiday_notified", {})
+
+
+def mark_holiday_notified(date_str, when):
+    state = load_state()
+    state.setdefault("holiday_notified", {})[date_str] = when
+    save_state(state)
+
+
+# ── weekly holiday-list sync ──────────────────────────────
+def get_holiday_sync_week():
+    """The [iso_year, iso_week] the holiday list was last refreshed in."""
+    return load_state().get("holiday_sync_week")
+
+
+def set_holiday_sync_week(week_key, when):
+    state = load_state()
+    state["holiday_sync_week"] = list(week_key)
+    state["holiday_sync_at"] = when
     save_state(state)

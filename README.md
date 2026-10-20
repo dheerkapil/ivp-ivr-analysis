@@ -18,8 +18,8 @@ Automated daily analysis of Implied Volatility Percentile (IVP) and Implied Vola
 The workflow fires on a 30-minute ladder — `18:00, 18:30, … 23:30, 00:00` IST,
 Mon–Fri. Every run asks one question: *has today's report gone out yet?*
 
-- **Trading holiday** (checked against NSE's holiday list) → do nothing at all:
-  no report, no retries, no alert.
+- **Trading holiday** (checked against NSE's holiday list) → send a one-off
+  "market closed" notice on the first check of the day, then do nothing else.
 - **Data is available** → compute IV/IVR/IVP, send the full report, record the
   day as sent in `data/state.json`, and stop. Later slots that day do nothing.
 - **Data not published yet** (NSE posts the F&O bhavcopy around 18:00 IST, and
@@ -34,9 +34,17 @@ data exists — never a duplicate flood, and never a silent failure.
 
 The day under report is checked against NSE's holiday list (`FO` segment), taken
 live from NSE's `holiday-master` API with a bundled fallback in
-`config/nse_holidays.json` for when the API is unreachable. On a holiday the run
-does nothing, so you don't get a spurious late-night "no data" alert. The
-bundled list should be refreshed once a year (or just rely on the live API).
+`config/nse_holidays.json` for when the API is unreachable. On a holiday you get
+a single **"NSE Trading Holiday"** notice on the first check of the day (sent
+once — tracked in `data/state.json`), and nothing else; there's no spurious
+late-night "no data" alert.
+
+The bundled fallback is **refreshed weekly** — on the first run on/after Monday
+18:00 IST, the live list is fetched and the file rewritten if anything changed
+(the change is committed). If NSE is unreachable that week, the sync retries on
+the next slot. When no list at all can be found for a year the check fails open
+(assumes a trading day), so a missed holiday costs at most one alert rather than
+a dropped report.
 
 ### Delivery guarantees
 

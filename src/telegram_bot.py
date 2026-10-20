@@ -57,6 +57,15 @@ def send_error_notification(message):
     return ok
 
 
+def holiday_message(date_str, name=""):
+    """The one-off notice sent on the first check of a trading holiday."""
+    when = f" ({name})" if name else ""
+    return (f"🗓️ *NSE Trading Holiday* — {date_str}\n\n"
+            f"Markets are closed today{when}, so there is no bhavcopy and no "
+            f"IVP/IVR report.\n\n"
+            f"The next report will go out on the next trading day.")
+
+
 def _cell(value, decimals=1, suffix=""):
     """Format a metric, rendering a missing (gated) value as an em dash."""
     if value is None:

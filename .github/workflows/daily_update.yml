@@ -11,7 +11,9 @@ name: Daily IVP/IVR Update
 # "no data" alert is sent instead.
 #
 # NSE trading holidays are detected up front (src/holidays.py): on a holiday the
-# run does nothing at all — no report, no retries, no alert.
+# run sends a one-off "market closed" notice on the first check, then does
+# nothing else. The bundled holiday list is refreshed weekly — on the first run
+# on/after Monday 18:00 IST.
 #
 # NOTE: GitHub's scheduler routinely runs these slots several hours late; the
 # ladder is dense so that whichever slot actually fires after ~18:00 IST is the
@@ -77,7 +79,7 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add data
+          git add data config
           git commit -m "IVP/IVR state $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "No changes to commit"
           git pull --rebase --autostash origin main || echo "rebase skipped"
           git push || echo "Nothing to push"

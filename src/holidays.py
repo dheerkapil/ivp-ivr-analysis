@@ -1,15 +1,14 @@
 """NSE trading-holiday lookup.
 
 On a trading holiday the exchange publishes no bhavcopy, so the daily report has
-nothing to do — and without this check the retry ladder would spend the evening
-hammering NSE and then fire a false "no data" alert at midnight. main.py asks
-this module whether the day it is about to report on is a holiday and, if so,
-exits without doing anything.
+nothing to do. main.py asks this module whether the day it is about to report on
+is a holiday and, if so, sends a one-off holiday notice instead of a report.
 
 Source of truth, in order:
   1. NSE's live holiday-master API (segment FO — this is an F&O report).
   2. config/nse_holidays.json, a bundled copy of the same list, used when the
-     API is unreachable (NSE sometimes refuses cloud-runner IPs).
+     API is unreachable (NSE sometimes refuses cloud-runner IPs). This bundled
+     copy is refreshed weekly — see sync_holiday_list().
 
 If neither can answer for the year in question the lookup *fails open* — it
 reports "not a holiday" — because a missed holiday only costs one spurious
@@ -18,10 +17,12 @@ drop a report.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, time, timedelta
 from pathlib import Path
 
 import requests
+
+from src.config import now_ist
 
 _HOLIDAY_FILE = Path(__file__).resolve().parent.parent / "config" / "nse_holidays.json"
 _API_URL = "https://www.nseindia.com/api/holiday-master?type=trading"
@@ -106,3 +107,64 @@ def is_trading_holiday(day):
     iso = day.date().isoformat() if isinstance(day, datetime) else day.isoformat()
     holidays = get_holidays(day.year)
     return (iso in holidays), holidays.get(iso, "")
+
+
+# ── weekly refresh of the bundled fallback ────────────────
+def week_key(now):
+    """ISO [year, week] for `now` — the unit of the weekly sync."""
+    iso = now.isocalendar()
+    return [iso[0], iso[1]]
+
+
+def monday_1800_of_week(now):
+    """The Monday 18:00 IST that starts `now`'s ISO week."""
+    monday = now.date() - timedelta(days=now.weekday())
+    return datetime.combine(monday, time(18, 0), tzinfo=now.tzinfo)
+
+
+def should_sync(now, last_synced_week):
+    """
+    True on the first run on/after Monday 18:00 IST of a week that hasn't been
+    synced yet. Anchoring on the week (not the weekday) means a Monday slot that
+    GitHub delivers after midnight still triggers the sync.
+    """
+    if last_synced_week == week_key(now):
+        return False
+    return now >= monday_1800_of_week(now)
+
+
+def sync_holiday_list(year=None):
+    """
+    Refresh the bundled holiday list for `year` from NSE.
+
+    Returns (ok, changed, count):
+        ok=False  — the live API was unreachable; nothing was written.
+        ok=True   — the bundled file is now current (changed says whether it moved).
+    """
+    year = int(year or now_ist().year)
+    live = _fetch_live(year)
+    if live is None:
+        print("holidays: weekly sync skipped — live API unreachable")
+        return False, False, 0
+
+    try:
+        payload = json.loads(_HOLIDAY_FILE.read_text())
+    except Exception:
+        payload = {}
+
+    all_holidays = payload.get("holidays", {}) or {}
+    if all_holidays.get(str(year)) == live:
+        print(f"holidays: weekly sync — {year} list unchanged ({len(live)} entries)")
+        return True, False, len(live)
+
+    all_holidays[str(year)] = live
+    payload["holidays"] = all_holidays
+    payload["source"] = "NSE holiday-master (type=trading), segment FO"
+    payload["fetched"] = now_ist().date().isoformat()
+    payload["note"] = ("Fallback only. The live NSE API is tried first; this file "
+                       "is used if it is unreachable. Refreshed weekly on the first "
+                       "Monday run (18:00 IST).")
+    _HOLIDAY_FILE.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    _cache.pop(year, None)
+    print(f"holidays: weekly sync — updated {year} list ({len(live)} entries)")
+    return True, True, len(live)

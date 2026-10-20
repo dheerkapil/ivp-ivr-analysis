@@ -14,7 +14,9 @@ If no data has appeared by the time the window closes (midnight IST), a single
 "no data" alert is sent instead, and the day is closed.
 
 Trading holidays are detected up front (see src/holidays.py): on a holiday the
-run does nothing at all — no report, no retries, no "no data" alert.
+run sends a single "market closed" notice on the first check of the day, then
+does nothing else — no report, no retries, no "no data" alert. The bundled
+holiday list is refreshed weekly, on the first run on/after Monday 18:00 IST.
 
 Loud failure
 ------------
@@ -41,11 +43,17 @@ from src.database import (
 )
 from src.metrics import compute_iv_rank_percentile
 from src.contracts import compute_symbol_iv
-from src.state import already_sent, mark_sent, already_failed, mark_failed
-from src.holidays import is_trading_holiday
+from src.state import (
+    already_sent, mark_sent, already_failed, mark_failed,
+    holiday_notified, mark_holiday_notified,
+    get_holiday_sync_week, set_holiday_sync_week,
+)
+from src.holidays import (
+    is_trading_holiday, sync_holiday_list, should_sync, week_key,
+)
 from src.telegram_bot import (
     send_telegram_message, send_error_notification,
-    format_results, credentials_present,
+    format_results, credentials_present, holiday_message,
 )
 
 RISK_FREE_RATE = 0.05
@@ -188,7 +196,7 @@ def deliver_no_data(date_str, when, status):
 
     msg = (f"⚠️ *NSE IVP/IVR Report* — {date_str}\n\n"
            f"No report could be generated: {reason}\n\n"
-           f"The retry window (16:30–24:00 IST) has closed. "
+           f"The retry window (18:00–24:00 IST) has closed. "
            f"Nothing more will be sent for {date_str}.")
     if send_error_notification(msg):
         mark_failed(date_str, when.isoformat())
@@ -209,16 +217,32 @@ def main():
     load_config()
     init_database()
 
-    # Trading holiday? The exchange publishes no bhavcopy, so there is nothing
-    # to report and no reason to run the periodic checks at all.
-    holiday, holiday_name = is_trading_holiday(target)
-    if holiday:
-        print(f"{target_str} is an NSE trading holiday ({holiday_name}) — "
-              f"skipping the report and all periodic checks.")
-        return 0
+    # Weekly holiday-list refresh: first run on/after Monday 18:00 IST. Keeps
+    # the bundled fallback in config/nse_holidays.json in step with NSE.
+    if should_sync(now, get_holiday_sync_week()):
+        ok, changed, count = sync_holiday_list(now.year)
+        if ok:
+            set_holiday_sync_week(week_key(now), now.isoformat())
+            print(f"Weekly holiday sync complete (changed={changed}, {count} entries).")
+        else:
+            print("Weekly holiday sync could not reach NSE — will retry on the next slot.")
 
     if not credentials_present():
         print("❌ TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID not set — cannot send any alert.")
+        return 1
+
+    # Trading holiday? Send a one-off notice on the first check of the day, then
+    # do nothing else — no report, no retries, no end-of-window alert.
+    holiday, holiday_name = is_trading_holiday(target)
+    if holiday:
+        if holiday_notified(target_str):
+            print(f"{target_str} is a trading holiday ({holiday_name}) — already notified.")
+            return 0
+        print(f"{target_str} is an NSE trading holiday ({holiday_name}) — sending holiday notice.")
+        if send_telegram_message(holiday_message(target_str, holiday_name)):
+            mark_holiday_notified(target_str, now.isoformat())
+            return 0
+        print("❌ Could not deliver the holiday notice.")
         return 1
 
     # Already handled today? Nothing to do.
