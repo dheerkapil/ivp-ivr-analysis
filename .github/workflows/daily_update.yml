@@ -1,0 +1,102 @@
+name: Daily IVP/IVR Update
+
+# Retry ladder: every 30 minutes from 18:00 IST to 00:00 IST, Mon–Fri.
+#   12:30 UTC       ==  18:00 IST  (first check)
+#   13:00–18:30 UTC ==  18:30–00:00 IST
+#
+# Each run is idempotent: it sends the report only if today's trading day has
+# not already gone out (tracked in data/state.json). So late or bunched runs
+# are harmless, and you still get exactly ONE report per trading day — as soon
+# as the bhavcopy is available. If nothing turns up by midnight IST, one
+# "no data" alert is sent instead.
+#
+# NSE trading holidays are detected up front (src/holidays.py): on a holiday the
+# run sends a one-off "market closed" notice on the first check, then does
+# nothing else. The bundled holiday list is refreshed weekly — on the first run
+# on/after Monday 18:00 IST.
+#
+# NOTE: GitHub's `schedule` trigger is best-effort and runs from a shared queue;
+# on this repo it has fired 35 min to ~10 h late. This ladder is the FALLBACK.
+# For reliable timing, trigger this workflow with `workflow_dispatch` from an
+# external timer — see docs/external-trigger.md. Both paths are safe together
+# because the run is idempotent (it sends at most one report per trading day).
+
+on:
+  schedule:
+    - cron: '30 12 * * 1-5'        # 18:00 IST
+    - cron: '0,30 13-18 * * 1-5'   # 18:30–00:00 IST
+  workflow_dispatch:          # manual trigger (always available)
+
+permissions:
+  contents: write
+
+# Serialise runs so two overlapping slots can't both decide to send.
+concurrency:
+  group: ivp-ivr-daily
+  cancel-in-progress: false
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create data and output directories
+        run: |
+          mkdir -p data
+          mkdir -p data/daily
+          mkdir -p output
+
+      - name: Rebuild database from per-day files
+        run: python scripts/bootstrap_db.py
+
+      - name: Check DB days
+        run: |
+          python -c "import sqlite3; conn = sqlite3.connect('data/iv_history.db'); count = conn.execute('SELECT COUNT(DISTINCT date) FROM daily_iv').fetchone()[0]; print(f'Days in daily_iv: {count}'); conn.close()"
+
+      - name: Run main analysis
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_ERROR_CHAT_ID: ${{ secrets.TELEGRAM_ERROR_CHAT_ID }}
+        run: python src/main.py
+
+      - name: Export today's reading file
+        run: python scripts/export_daily.py
+
+      - name: Commit and push results (flattened — one commit, always)
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          # The SQLite DB is rebuilt from data/daily/*.json at the start of every
+          # run, so it is gitignored and never committed.
+          #
+          # The branch is FLATTENED on every run: a fresh orphan commit holding
+          # the current tree is force-pushed over main. Ordinary commits made
+          # this repo grow without bound (257 MB) because each run rewrote the
+          # 13 MB DB and the workbook into history. One commit per run keeps the
+          # repo at a constant few MB no matter how often this fires.
+          git checkout --orphan flattened-run
+          # The DB is rebuilt from data/daily at the START of every run, so by
+          # now it is disposable — delete it outright. This is the only reliable
+          # way to keep it out of the commit: .gitignore only stops UNTRACKED
+          # files, and `git rm --cached` alone was not enough (git add -A
+          # re-staged it).
+          rm -f data/iv_history.db
+          git rm -r --cached --quiet data/iv_history.db 2>/dev/null || true
+          git add -A
+          git commit -m "IVP/IVR state $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push --force origin flattened-run:main
