@@ -1,0 +1,55 @@
+name: Backfill Historical Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Trading days to collect (default: 312 = a year + 60-day warm-up)'
+        required: true
+        default: '312'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove old database (clean start)
+        run: |
+          rm -f data/iv_history.db
+          git add -f data/iv_history.db || true
+          git commit -m "Remove old database for fresh backfill" || echo "No old database to remove"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backfill
+        run: python scripts/backfill.py --target ${{ github.event.inputs.target }}
+
+      - name: Verify database has at least target days
+        run: |
+          python -c "import sqlite3; conn = sqlite3.connect('data/iv_history.db'); count = conn.execute('SELECT COUNT(DISTINCT date) FROM daily_iv').fetchone()[0]; target = int('${{ github.event.inputs.target }}'); print(f'Days in database: {count}'); assert count >= target, f'Expected {target}, got {count}'; conn.close()"
+
+      - name: Commit and push results
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add -f data/iv_history.db
+          git add data/daily
+          git commit -m "Backfill IV data: ${{ github.event.inputs.target }} days + per-day files" || echo "No changes"
+          git pull --rebase --autostash origin main || echo "rebase skipped"
+          git push
